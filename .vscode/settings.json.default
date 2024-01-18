@@ -1,0 +1,15 @@
+{
+    "latex-workshop.intellisense.package.enabled": true,
+    "latex-workshop.intellisense.package.dirs": [],
+    "latex-workshop.intellisense.package.extra": ["notestyles", "amssymb", "amsmath", "enumitem", "xcolor", "tcolorbox", "tikz", "multicol", "booktabs", "makecell", "parskip", "xstring", "subfiles", "changepage", "fancyhdr", "hyperref", "babel"],
+    "latex-workshop.latex.outDir": "%WORKSPACE_FOLDER%/out/%RELATIVE_DIR%",
+    "latex-workshop.synctex.synctexjs.enabled": false,
+    "latex-workshop.latex.autoBuild.run": "never",
+    "ltex.language": "en-GB",
+    "ltex.checkFrequency": "save",
+    "ltex.disabledRules": {
+        "en-GB": [
+            "OXFORD_SPELLING_Z_NOT_S"
+        ]
+    }
+}

@@ -1,0 +1,73 @@
+{
+  "includes": {
+    "amssymb": [],
+    "amsmath": [],
+    "enumitem": [],
+    "hyphsubst": [],
+    "babel": [],
+    "hyperref": [],
+    "geometry": [],
+    "fancyhdr": [],
+    "multicol": [],
+    "fontenc": [],
+    "charter": [],
+    "inconsolata": [],
+    "cabin": [],
+    "newtxmath": [],
+    "bm": [],
+    "xcolor": [],
+    "tabularray": [],
+    "booktabs": [],
+    "varwidth": [],
+    "parskip": [],
+    "tcolorbox": [],
+    "adjustbox": [],
+    "xparse": [],
+    "xstring": [],
+    "subfiles": [],
+    "changepage": [],
+    "tikz": [],
+    "graphicx": []
+  },
+  "macros": {
+    "addfile[]{}": {
+      "snippet": "addfile[${2:input}]{${1:<filename>}}"
+    },
+    "addfile{}": {
+      "snippet": "addfile{${1:<filename>}}"
+    },
+    "concept{}": {
+      "snippet": "concept{${1:text}}"
+    },
+    "rulebookend": {},
+    "rulechapterend": {}
+  },
+  "envs": {
+    "definition{}": {
+      "name": "definition",
+      "snippet": "{${1:title}}"
+    },
+    "descriptenum": {},
+    "descriptimize": {},
+    "example": {},
+    "example[]": {
+      "name": "example",
+      "snippet": "[${1:title}]"
+    },
+    "exercise{}": {
+      "name": "exercise",
+      "snippet": "{${1:title}}"
+    },
+    "indentparagraph": {},
+    "sidenote{}": {
+      "name": "sidenote",
+      "snippet": "{${1:title}}"
+    },
+    "theorem{}": {
+      "name": "theorem",
+      "snippet": "{${1:title}}"
+    }
+  },
+  "options": [],
+  "keyvals": []
+}
