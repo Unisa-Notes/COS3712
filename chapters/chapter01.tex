@@ -248,7 +248,7 @@
 				Hard-copy devices, such as printers and plotters, are also raster-based, but cannot be
 				refreshed.
 
-				Stereo (3D) television displays use alternate refresh cycles to switch the display 
+				Stereo (3D) television displays use alternate refresh cycles to switch the display
 				between an image for the left eye and an image for the right eye.
 				The viewer wears special glasses that are coupled to the refresh cycle.
 
@@ -262,5 +262,105 @@
 
 				Due to new input devices appearing regularly,
 				our graphics programs should implement a flexible model for incorporating input devices.
+			\pagebreak
+
+		\section{Images: Physical and Synthetic}
+			\subsection{Objects and Viewers}
+				Every image formation process contains two basic entities:
+				\concept{object} and \concept{viewer}.
+				The object exists in space independent of any image formation process, and any viewer.
+				In computer graphics, objects are formed by specifying positions in space of various
+				geometric primitives.
+				A set of locations in space, or of \concept{vertices}, is sufficient to define or
+				approximate most objects.
+
+				To form an image from an object, we need someone or something that is viewing the object.
+				The \emph{viewer} forms the image of our objects.
+				In the human visual system, the image is formed on the back of the eye.
+				In a camera, the image is formed in the film plane.
+				An image is a specific \emph{view} of an object -- viewers in a different relative
+				location will have different images of the same object.
+
+				Objects and viewers exist in three-dimensional space,
+				but the image that is defined is two-dimensional.
+
+			\subsection{Light and Images}
+				An image must have a light source.
+				Light from the source strikes various surfaces of the object,
+				and a portion of the reflected light enters the camera through the lens.
+
+				\begin{definition}{Light}
+					A form of magnetic radiation.
+
+					Electromagnetic energy travels as waves that can be characterized either by
+					their wavelengths or their frequencies.
+					The electromagnetic spectrum includes radio waves, infrared, and a portion that
+					causes a response in our visual systems.
+
+					This \concept{visual spectrum} is called \concept{light},
+					and has wavelengths in the range of $350$ to $780$ nanometers (nm).
+
+					A given light source has a color determined by the energy that it emits at various
+					wavelengths.
+
+					\begin{indentparagraph}
+						\begin{descriptimize}[nosep]
+							\item[450 nm] blue
+							\item[520 nm] green
+							\item[650 nm] red
+						\end{descriptimize}
+					\end{indentparagraph}
+				\end{definition}
+
+				Light sources can emit light either as a set of discrete frequencies,
+				or over a continuous range.
+
+				In computer graphics, we rarely need to deal with the physical properties of light.
+				Instead, we use \concept{geometric optics}.
+
+				\begin{definition}{Geometric Optics}
+					This method models light sources as emitters of light energy,
+					each of which have a fixed intensity.
+
+					In this model, light travels in straight lines,
+					from the sources to those objects with which it interacts.
+				\end{definition}
+
+				An ideal \concept{point source} emits energy from a single location
+				at one or more frequencies equally in all directions.
+				A particular source is characterized by the
+				intensity of light it emits at each frequency and
+				by that light's directionality.
+
+			\subsection{Imaging Models}
+				There are multiple approaches to forming images from a set of objects,
+				the light-reflecting properties of these objects, and
+				the properties of the light sources in the scene.
+
+				We can start by building an imaging model by following light from a source.
+
+				\begin{definition}{Ray}
+					A semi-infinite line that emanates from a point and
+					travels to infinity in a particular direction.
+				\end{definition}
+
+				Because light travels in straight lines, we can think in terms of rays of light
+				emanating in all directions from our point source.
+				A portion of these infinite rays contributes to the image on the film plane of our camera.
+				Most of the rays go off to infinity, neither entering the camera directly nor striking any
+				of the objects.
+				The remaining rays strike and illuminate objects.
+
+				\concept{Ray tracing} and \concept{photon mapping} are image formation techniques
+				that are based on these ideas and that can form the basis for producing computer-generated
+				images.
+				We can use ray-tracing to simulate complex physical effects,
+				if we are willing to carry our the requisite computing.
+				Ray-tracing is usually not well-suited for real-time computation.
+
+				Other physical approaches to image formation are based on conservation of energy.
+				The most important in computer graphics is \concept{radiosity},
+				which works best for services that scatter the incoming light equally in all directions.
+				However, radiosity still requires more computation than can be done in real time.
 
 \end{document}
