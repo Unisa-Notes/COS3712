@@ -363,4 +363,121 @@
 				which works best for services that scatter the incoming light equally in all directions.
 				However, radiosity still requires more computation than can be done in real time.
 
+		\section{Imaging Systems}
+			\subsection{Pinhole Camera}
+				\begin{definition}{Pinhole Camera}
+					A box with a small hold in the center of one side:
+					the film is placed inside the box on the side opposite the pinhole.
+				\end{definition}
+				\begin{example}[Pinhole Camera]
+					\begin{wrapfigure}[7]{r}{0.5\textwidth}
+						\begin{center}
+							\includegraphics[width=0.48\textwidth]{\main/images/chapter01/pinhole_camera.png}
+						\end{center}
+						\caption{Pinhole Camera}
+					\end{wrapfigure}
+
+					Suppose the camera is oriented along the \mbox{$x$-axis},
+					with the pinhole at the origin of our coordinate system.
+
+					Assume the hole is so small that only a single ray of light,
+					emanating from a point, can enter it.
+					The film plane is located at a distance $d$ from the pinhole.
+
+					\vspace{4.5em}
+					\pagebreak
+
+					\begin{wrapfigure}[11]{l}{0.5\textwidth}
+						\vspace{-20pt}
+						\begin{center}
+							\includegraphics[width=0.48\textwidth]{\main/images/chapter01/pinhole_camera_side.png}
+						\end{center}
+						\vspace{-10pt}
+						\caption{Pinhole Camera Side View}
+					\end{wrapfigure}
+
+					A side view allows us to calculate where the image of the point ($x$, $y$, $z$) is
+					on the film~plane~$z = -d$.
+					As the two triangles are similar, the $y$ coordinate of the image is at $y_p$.
+					\begin{align*}
+						y_p &= -\frac{y}{z/d}
+					\end{align*}
+
+					Using a top view, a similar calculation is:
+					\begin{align*}
+						x_p &= -\frac{x}{z/d}
+					\end{align*}
+
+					The point ($x_p$, $y_p$, $-d$) is called the \concept{projection}
+					of the point ($x$, $y$, $z$).
+					The color on the film plane at this point will be the color of the point ($x$, $y$, $z$).
+				\end{example}
+
+				The \concept{field of view} (or \concept{angle of view}) is
+				the angle made by the largest object that our camera can image on its film plane.
+				If $h$ is the height of the camera, the angle of view $\theta$ is:
+				\begin{align*}
+					\theta &= 2\tan^{-1}\left(\frac{h}{2d}\right)
+				\end{align*}
+
+				The ideal pinhole camera has an infinite \concept{depth of field}:
+				every point within its view is in focus.
+				Every point in its field of view projects to a point on the back of the camera.
+
+				The pinhole camera has two disadvantages:
+				the pinhole is small, so almost no light enters the camera; and
+				the camera cannot be adjusted to have a different field of view.
+
+				To resolve the above issues, the pinhole can be replaced with a lens.
+				Firstly, the lens gathers more light than can pass through the pinhole:
+				the larger the aperture of the lens, the more light the lens can collect.
+				Secondly, by picking a lens with the proper focal length
+				(equivalent to choosing the distance $d$ for the pinhole camera)
+				we can achieve any desired field of view (up to 180 degrees).
+				Lenses, however, do not have an infinite depth of field:
+				not all distances from the lens are in focus.
+
+				Like the pinhole camera, computer graphics produces images in which
+				all objects are in focus.
+
+			\subsection{The Human Visual System}
+				Light enters the eye through the cornea (a transparent structure that protects the eye),
+				and the lens.
+				The iris opens and closes to adjust the amount of light entering the eye.
+				The lens forms an image on a two-dimensional structure called the \concept{retina}
+				on the back of the eye.
+				The rods and cones are light sensors and are located on the retina.
+				They are excited by electromagnetic energy in the range of 350 to 780 nm.
+
+				The rods are low-level-light sensors that account for our night vision,
+				and are not color-sensitive;
+				the cones are responsible for our color vision.
+				The sizes of the rods and cones, and the optical properties of the lens and cornea,
+				determine our \concept{visual acuity} or the \concept{resolution} of our visual systems.
+
+				\begin{definition}{Resolution (of the eye)}
+					A measure of what size objects we can see.
+					That is, a measure of how close we can place two points
+					and still recognize that there are two distinct points.
+				\end{definition}
+
+				The sensors in the human eye react differently to light energy at different wavelengths.
+				There are three types of cones and a single type of rod.
+				Intensity and brightness are different:
+				one is a physical measure, the other is a measure of perception.
+
+				\begin{definition}{Brightness}
+					A measure of how intense we perceive the light emitted from an object to be.
+
+					An overall measure of how we react to the intensity of light.
+				\end{definition}
+
+				The human visual system reacts differently to monochromatic green light than to red.
+				If these lights emitted the same energy, they would appear to have different brightness.
+				The human eye is most sensitive to green light, and least sensitive to red and blue.
+
+				As there are three different cone types,
+				instead of working with all visible wavelengths individually,
+				we can use three standard primaries to approximate any color that we can perceive.
+
 \end{document}
