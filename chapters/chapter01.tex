@@ -480,4 +480,43 @@
 				instead of working with all visible wavelengths individually,
 				we can use three standard primaries to approximate any color that we can perceive.
 
+		\section{The Synthetic-Camera Model}
+			\begin{definition}{Synthetic-Camera Model}
+				Look at creating a computer-generated image as being similar to
+				forming an image using an optical system.
+			\end{definition}
+
+			\begin{sidenote}{Principles for the Synthetic-Camera Model}
+				\begin{enumerate}[nosep]
+					\item The specification of objects is independent of the specification of the viewer.
+					\item We can compute an image using simple geometric calculations.
+				\end{enumerate}
+			\end{sidenote}
+
+			With a real camera, the image of the object is flipped relative to the object.
+			The film needs to flipped to regain the original orientation of the object.
+
+			For a synthetic camera, the above can be avoided by
+			drawing another plane in front of the lens, and
+			working in three dimensions.
+			We find the image of a point on the object on the virtual plane
+			by drawing a line, called a \concept{projector}
+			from the center of the lens (called the \concept{center of projection (COP)}).
+			All projectors are rays emanating from the center of projection.
+			In a synthetic camera, the virtual image plane that is moved in front of the lens
+			is called the \concept{projection plane}.
+
+			The size of an image is limited.
+			In the pinhole camera, the field of view expresses this limitation.
+			In the synthetic camera, this limitation can be moved to the front by
+			placing a \concept{clipping rectangle} or \concept{clipping window}
+			in the projection plane.
+			This rectangle acts as a window through which a viewer,
+			located at the center of projection,
+			sees the world.
+			Given the location of the center of projection,
+			the location and orientation of the projection plane, and
+			the size of the clipping rectangle,
+			we can determine which objects will appear in the image.
+
 \end{document}
