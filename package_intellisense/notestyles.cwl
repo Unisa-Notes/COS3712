@@ -34,6 +34,7 @@
 \begin{descriptimize}
 \begin{example}
 \begin{example}[title]
+\begin{example}[title][options]
 \begin{exercise}{title}
 \begin{indentparagraph}
 \begin{sidenote}{title}

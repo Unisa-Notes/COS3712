@@ -54,6 +54,10 @@
       "name": "example",
       "snippet": "[${1:title}]"
     },
+    "example[][]": {
+      "name": "example",
+      "snippet": "[${1:title}][${2:options}]"
+    },
     "exercise{}": {
       "name": "exercise",
       "snippet": "{${1:title}}"
