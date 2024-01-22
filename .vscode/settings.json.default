@@ -1,7 +1,7 @@
 {
     "latex-workshop.intellisense.package.enabled": true,
     "latex-workshop.intellisense.package.dirs": [],
-    "latex-workshop.intellisense.package.extra": ["notestyles", "amssymb", "amsmath", "enumitem", "xcolor", "tcolorbox", "tikz", "multicol", "booktabs", "makecell", "parskip", "xstring", "subfiles", "changepage", "fancyhdr", "hyperref", "babel"],
+    "latex-workshop.intellisense.package.extra": ["notestyles", "amssymb", "amsmath", "enumitem", "xcolor", "tcolorbox", "tikz", "multicol", "booktabs", "makecell", "parskip", "xstring", "subfiles", "changepage", "fancyhdr", "hyperref", "babel", "minted"],
     "latex-workshop.latex.outDir": "%WORKSPACE_FOLDER%/out/%RELATIVE_DIR%",
     "latex-workshop.synctex.synctexjs.enabled": false,
     "latex-workshop.latex.autoBuild.run": "never",

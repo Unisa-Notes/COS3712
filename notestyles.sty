@@ -72,16 +72,9 @@
 \RequirePackage{tcolorbox}
 \tcbuselibrary{breakable}
 \RequirePackage{adjustbox}
-\RequirePackage{xparse}
 
-\NewDocumentEnvironment{example}
-	{o +b}
-	{
-		\IfNoValueTF{#1}
-			{\tcolorbox[coltitle=example title, colback=example color, breakable, detach title, before upper={\tcbtitle\quad}, title=\textbf{Example}, parbox=false, center]}
-			{\tcolorbox[breakable, colback=example color, colframe=example border, fonttitle=\bfseries, title={Example: #1}, center title, parbox=false, center]}
-		#2
-	}
+\newenvironment{example}[2][Example]
+	{\tcolorbox[breakable, colback=example color, colframe=example border, fonttitle=\bfseries, title={Example: #1}, center title, parbox=false, center]#2}
 	{\endtcolorbox}
 \newenvironment{definition}[2][]
 	{\tcolorbox[breakable, colback=definition color, colframe=definition border, fonttitle=\bfseries, title={#2}, center title, parbox=false, center, #1]}

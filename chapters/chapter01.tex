@@ -1,4 +1,5 @@
 \providecommand{\main}{..}
+\providecommand{\mintedoutdir}{\main/out/chapters}
 \documentclass[\main/notes.tex]{subfiles}
 
 \begin{document}
@@ -518,5 +519,245 @@
 			the location and orientation of the projection plane, and
 			the size of the clipping rectangle,
 			we can determine which objects will appear in the image.
+
+		\pagebreak
+
+		\section{The Programmer's Interface}
+			\begin{definition}{Application Programming Interface (API)}
+				A set of functions in a graphics library that defines the interface
+				between an application program and a graphics system.
+			\end{definition}
+
+			The application programmer sees only the API,
+			and is not concerned with the details of both the hardware and software implementation
+			of the graphics library.
+
+			\begin{definition}{Software Drivers}
+				Responsible for interpreting the output of the API
+				and converting these data to a form that is understood by the particular hardware.
+			\end{definition}
+
+			The functions of the API should match the conceptual model
+			that the user wishes to employ to specify images.
+
+			\subsection{The Pen-Plotter Model}
+				Most early graphics systems were two-dimensional.
+				The model they used is referred to as the \mbox{\concept{pen-plotter model}},
+				due to the output device that was available on these systems.
+
+				\begin{definition}{Pen Plotter}
+					A device that produces images by moving a pen held by a \concept{gantry},
+					a structure that can move the pen in two orthogonal directions across the paper.
+
+					The plotter can raise and lower the pen as required to create the desired image.
+
+					They view the process of creating an image as being similar to the process of
+					drawing on a pad of paper.
+				\end{definition}
+
+				\begin{example}[Pen-Plotter Functions]
+					\begin{minted}[autogobble, bgcolor={example color!25!white}]{javascript}
+						moveto(x, y);
+						lineto(x, y);
+					\end{minted}
+					\mintinline{javascript}|moveto(x, y)| moves the pen to the location ($x$, $y$)
+					on the paper without leaving a mark.
+					\mintinline{javascript}|lineto(x, y)| moves the pen to the location ($x$, $y$)
+					on the paper while drawing a line from the old location to the new location.
+				\end{example}
+
+				A different raster-based (but still limited) two-dimensional model
+				relies on writing pixels directly into a framebuffer.
+				This could use the function:
+				\begin{minted}[autogobble]{javascript}
+					writePixel(x, y, color);
+				\end{minted}
+				where \mintinline{javascript}|x, y| is the location of the pixel in the framebuffer
+				and \mintinline{javascript}|color| is the color to be written there.
+
+				The pen-plotter method does not extend well to three-dimensional graphics systems.
+
+			\subsection{Three-Dimensional APIs}
+				The synthetic-camera model is the basis for a number of popular APIs.
+				This requires functions to specify the following:
+				\begin{center}
+					\begin{itemize*}[itemjoin=\quad]
+						\item objects
+						\item a viewer
+						\item light sources
+						\item material properties
+					\end{itemize*}
+				\end{center}
+
+				\subsubsection{Objects}
+					Objects are usually defined by a set of \concept{vertices}.
+					For simple geometric objects, there is a simple relationship between a list of vertices
+					(positions in space)
+					and the object.
+					For more complex objects, there may be multiple ways of defining the object
+					from a set of vertices.
+
+					\begin{example}[Circle]
+						A circle can be defined by three points on its circumference,
+						or by its center and one point on its circumference.
+					\end{example}
+
+					Most APIs provide similar sets of primitive objects for the user
+					-- usually those that can be displayed rapidly on the hardware.
+					These include points, line segments, and triangles.
+
+					WebGL programs specify primitives through a set of vertices.
+
+					\begin{example}[Defining Vertices in Javascript]
+						\begin{minted}[autogobble, bgcolor={example color!25!white}]{javascript}
+							var vertices = [ ];
+
+							vertices[0] = [0.0, 0.0, 0.0]; // Vertex A
+							vertices[1] = [0.0, 1.0, 0.0]; // Vertex B
+							vertices[2] = [0.0, 0.0, 1.0]; // Vertex C
+						\end{minted}
+
+						These vertices only give three locations in a three-dimensional space
+						-- they do not specify the geometric entity that they define.
+
+						The choice of what entity is being defined is specified by
+						setting a parameter corresponding to the geometric entity we would like these locations
+						to specify.
+
+						Regardless of the geometric entity, we specify the geometry
+						and let the graphics system determine which pixels to color in the framebuffer.
+					\end{example}
+
+					Some APIs let the user work directly in the framebuffer by
+					providing functions that read and write pixels.
+					Additionally, some APIs provide curves and surfaces as primitives.
+					WebGL provides access to the framebuffer through texture maps.
+
+				\pagebreak
+
+				\subsubsection{Viewer}
+					There are a variety of ways to define a viewer or camera.
+					There are four necessary specifications:
+					\begin{indentparagraph}
+						\begin{descriptenum}[nosep]
+							\item[Position] The camera location is usually given by the position of 
+								the center of the lens, which is the center of projection (COP).
+							\item[Orientation] Once the camera is positioned,
+								we can place a camera coordinate system
+								with its origin at the center of projection.
+								The camera can then be rotated independently around the three axes of the system.
+							\item[Focal length] Determines the size of the image on the film plane,
+								that is, the portion of the world the camera sees.
+							\item[Film plane] The back of the camera has a height and a width.
+								On the bellows camera, and in some APIs, the orientation of the back of the camera
+								can be adjusted independently to the orientation of the lens.
+						\end{descriptenum}
+					\end{indentparagraph}
+
+					There are different ways to specify these specifications.
+					One way to develop the specifications for the camera location and orientation
+					is through a series of coordinate-system transformations.
+					These transformations convert object positions
+					represented in a coordinate system that specifies object vertices
+					to object positions in a coordinate system centered at the COP.
+
+					Having many parameters to adjust can make it difficult to get a desired image.
+					Part of the problem lies with the synthetic-camera model.
+					Classical viewing techniques stress the
+					\emph{relationship} between the object and the viewer,
+					rather than the \emph{independence} the synthetic-camera model emphasizes.
+					Thus, the classical two-point perspective of a cube is a \emph{two-point} perspective,
+					because of a particular relationship between the viewer and the planes of the cube.
+					Although the WebGL API allows us to set transformations with complete freedom,
+					there are additional helpful functions.
+
+					\begin{example}[WebGL Helpful Functions]
+						\vspace{-1em}
+						\begin{minted}[autogobble, bgcolor={example color!25!white}]{javascript}
+							lookAt(cop, at, up);
+							perspective(fieldOfView, aspectRatio, near, far);
+						\end{minted}
+						\vspace{-3em}
+
+						The first function call points the camera from the center of projection
+						(\mintinline{javascript}|cop|)
+						toward a desired point
+						(the \mintinline{javascript}|at| point)
+						with a specified \mintinline{javascript}|up| direction for the camera.
+
+						The second selects a lens for a perspective view
+						(the \mintinline{javascript}|fieldOfView|)
+						and how much of the world the camera should image
+						(the \mintinline{javascript}|aspectRatio| and the \mintinline{javascript}|near| and
+						\mintinline{javascript}|far| distances).
+					\end{example}
+
+					None of the APIs built on the synthetic camera model provide functions
+					for directly specifying a desired relationship between the camera and an object.
+
+				\subsubsection{Light Sources}
+					Light sources are defined by their location, strength, color, and directionality.
+					With WebGL, we can specify these parameters for each source.
+
+				\subsubsection{Material Properties}
+					\begin{definition}{Material Property}
+						A characteristic, or attribute, of an object.
+					\end{definition}
+
+					Material properties can also be specified through WebGL
+					at the time each object is defined.
+
+			\subsection{The Modeling-Rendering Paradigm}
+				It is often helpful to separate the modeling of the scene
+				from the production of the image
+				(the \concept{rendering} of the scene).
+				Image formation can be looked at as a two-step process.
+				We can implement the modeler and the renderer with different software and hardware.
+
+				This paradigm became important in CAD and animation where
+				the two needed to be separated due to hardware limitations.
+
+				\begin{example}[Production of a single frame in animation]
+					We first want to design and position our objects.
+					This step is highly interactive, and does not require all the detail in the objects,
+					nor to render the scene in great detail,
+					incorporating effects such as reflections and shadows.
+					This step can be carried out interactively with standard graphics hardware.
+
+					Once we have designed the scene, we want to render it,
+					adding light sources, material properties, and a variety of other detailed effects,
+					to form a production-quality image.
+					This step can require a tremendous amount of computation,
+					so we might prefer to use a \concept{render~farm}.
+
+					\begin{definition}{Render Farm}
+						A cluster of computers configured for numerical computing.
+					\end{definition}
+				\end{example}
+
+				The interface between the modeler and renderer can be
+				as simple as a file produced by the modeler that describes the objects
+				and that contains additional information important only to the renderer,
+				such as light sources, viewer location, and material properties.
+				Pixar's \concept{RenderMan Interface} is based on this approach,
+				and uses a file format that allows modelers to pass models to the renderer.
+				One of the other advantages of this approach is that
+				it allows us to develop modelers that,
+				although they use the same renderer,
+				are custom-tailored to particular applications.
+				Different renderers can take as input the same interface file.
+
+				With modern GPUs, most applications do not need to separate modeling and rendering.
+
+				This paradigm has become popular as a method
+				for generating images for multiplayer computer games.
+				Models, including the geometric objects, lights, cameras, and material properties,
+				are placed in a data structure called a \concept{scene graph}
+				that is passed to a renderer or game engine.
+
+				The standard way in which we use the GPU is to
+				first form our geometry objects in the CPU,
+				and then send these data to the GPU for rendering.
+				In a limited sense, the CPU is the modeler, and the GPU is the renderer.
 
 \end{document}
