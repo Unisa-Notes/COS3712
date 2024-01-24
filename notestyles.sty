@@ -6,7 +6,7 @@
 \usepackage{amsmath}
 
 % Lists
-\usepackage{enumitem}
+\usepackage[inline]{enumitem}
 
 % Language Settings
 \RequirePackage[english=nohyphenation]{hyphsubst}
@@ -50,7 +50,7 @@
 \RequirePackage[dvipsnames,table]{xcolor}
 \colorlet{example color}{blue!15!white}
 \colorlet{example title}{black}
-\colorlet{example border}{black}
+\colorlet{example border}{BlueViolet}
 \colorlet{definition color}{Aquamarine!30!white}
 \colorlet{definition border}{Aquamarine!75!black}
 \colorlet{exercise color}{orange!25!white}
@@ -73,14 +73,14 @@
 \tcbuselibrary{breakable}
 \RequirePackage{adjustbox}
 \RequirePackage{xparse}
+\RequirePackage{etoolbox}
 
 \NewDocumentEnvironment{example}
-	{o +b}
+	{O{} O{}}
 	{
-		\IfNoValueTF{#1}
-			{\tcolorbox[coltitle=example title, colback=example color, breakable, detach title, before upper={\tcbtitle\quad}, title=\textbf{Example}, parbox=false, center]}
-			{\tcolorbox[breakable, colback=example color, colframe=example border, fonttitle=\bfseries, title={Example: #1}, center title, parbox=false, center]}
-		#2
+		\ifblank{#1}
+			{\tcolorbox[coltitle=example title, colback=example color, breakable, detach title, before upper={\tcbtitle\quad}, title=\textbf{Example}, parbox=false, center, #2]}
+			{\tcolorbox[breakable, colback=example color, colframe=example border, fonttitle=\bfseries, title={Example: #1}, nameref={Example: #1}, center title, parbox=false, center, #2]}
 	}
 	{\endtcolorbox}
 \newenvironment{definition}[2][]
@@ -148,3 +148,7 @@
 \makeatletter
 \renewcommand{\@pnumwidth}{1.75em} 
 \makeatother
+
+% Pictures
+\RequirePackage{wrapfig}
+\RequirePackage[hypcap=false]{caption}
