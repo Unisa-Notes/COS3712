@@ -997,4 +997,51 @@
 			make them suitable for carrying out high-performance computing
 			that does not involve graphics.
 
+		\section{Performance Characteristics}
+			There are two fundamentally different types of processing in our architecture.
+
+			At the front end,
+			there is \concept{geometric processing},
+			based on processing vertices through the various transformations:
+			vertex shading, clipping, and primitive assembly.
+			This processing is ideally suited for pipelining,
+			and it usually involves floating-point calculations.
+			The geometry engine developed by Silicon Graphics, Inc
+			was a VLSI implementation for many of these operations
+			in a special-purpose chip that became
+			the basis for a series of fast graphics workstations.
+			Later, floating-point accelerator chips put
+			$4 \times 4$ matrix transformation units on the chip.
+			Nowadays, graphics workstations and commodity graphics cards use
+			graphics processing units that perform most of the graphics operations
+			at the chip level.
+
+			At the back end,
+			processing involves a direct manipulation of bits in the framebuffer.
+			This begins with rasterization.
+			Until recently, it was most implemented most effectively using architectures
+			that had the ability to move blocks of bits quickly.
+			The overall performance of a system is characterized by
+			how fast we can move geometric entities through the pipeline
+			and by how many pixels per second we can alter in the framebuffer.
+			The fastest graphics workstations were characterized by
+			geometric pipelines at the front ends
+			and parallel bit processors at the back ends.
+
+			There used to be a clear distinction between
+			front- and back-end processing,
+			with clear components and boards dedication to each.
+			Now commodity graphics cards use GPUs that contain the entire pipeline
+			within a single chip.
+			The latest cards implement the entire pipeline using floating-point arithmetic
+			and have floating-point framebuffers.
+
+			Since the operations performed when processing vertices and fragments are very similar,
+			modern GPUs are \concept{unified shading engines}
+			that carry out both vertex and fragment shading concurrently.
+			This processing might be limited to a single core in a small GPU,
+			or hundreds of processors in high-performance GPUs and gaming systems.
+			This flexibility in processing allows GPUs to use their resources optimally
+			regardless of an application's requirements.
+
 \end{document}
