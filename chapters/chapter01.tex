@@ -1044,4 +1044,77 @@
 			This flexibility in processing allows GPUs to use their resources optimally
 			regardless of an application's requirements.
 
+		\section{OpenGL Versions and WebGL}
+			\begin{sidenote}{History of OpenGL}
+				OpenGL is derived from IRIS GL,
+				an API for SGI's VLSI pipelined graphics workstations.
+				IRIS GL was close enough to the hardware to allow applications to run efficiently
+				and simultaneously
+				provided application developers with a high-level interface
+				to graphics capabilities of the workstations.
+				As it was designed for a particular architecture and operating system,
+				it could include both input and windowing functions in the API.
+
+				When OpenGL was developed as a cross-platform rendering API,
+				the input and windowing functionality were eliminated.
+				Therefore, although an application has to be recompiled for each architecture,
+				the rendering part of the application code should be identical.
+
+				The API of \concept{Version~1.0} of OpenGL (1992)
+				was based on the graphics pipeline architecture,
+				but there was almost no ability to access the hardware directly.
+				Early versions focussed on \concept{immediate mode graphics},
+				in which graphic primitives were specified in the application
+				and then immediately passed down the pipeline for display.
+				There was no memory of the primitives,
+				and their redisplay required them to be resent through the pipeline.
+
+				\concept{Version~2.0} (2004) introduced the \concept{OpenGL Shading Language},
+				which allowed application programmers to write their own shaders
+				and exploit the power of GPUs.
+				With better GPUs and more memory,
+				geometry information could be stored or retained,
+				and \concept{retained mode graphics} became increasingly more important.
+				\concept{Version~2.1} was released in 2006.
+
+				Until \concept{Version~3.0} (2008),
+				all versions of OpenGL were backwards compatible.
+				From \concept{Version~3.1},
+				backward compatibility would no longer be provided,
+				and immediate mode was to be deprecated.
+
+				We are currently at \concept{Version~4.4}.
+			\end{sidenote}
+
+			While OpenGL has been ported to other languages,
+			most applications are written in C and C++.
+
+			\begin{definition}{OpenGL ES}
+				There was an increasing demand for a version of OpenGL
+				that would run in embedded systems, smartphones,
+				and other hand-held devices.
+
+				\concept{OpenGL~ES~1.1} (2008) was based on OpenGL~Version~1.5.\\
+				\concept{OpenGL~ES~2.0} is based on OpenGL~Version~2.0,
+				and supports only shader-based applications and not immediate mode.\\
+				\concept{OpenGL~ES~3.0} was released in 2013.
+			\end{definition}
+
+			Both OpenGL and OpenGL~ES are designed to run locally,
+			and cannot take advantage of the Web.
+			If we want to run an OpenGL application we find on the Internet,
+			it needs to be run locally.
+			Even if we can run an application remotely and see its output on a local window,
+			the application cannot use the GPU on the local system.
+
+			\concept{WebGL} is a JavaScript interface to OpenGL~ES 2.0
+			that runs in modern web browsers.
+			A user can visit the URL of a WebGL application on a remote system,
+			and, like other web applications,
+			the program will run on the local system and make use of the local graphics hardware.
+			WebGL and OpenGL~ES are fully shader based.
+			All the basic properties and capabilities of OpenGL are in WebGL.
+
+		\rulechapterend
+
 \end{document}

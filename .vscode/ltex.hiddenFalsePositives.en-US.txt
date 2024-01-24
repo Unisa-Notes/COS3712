@@ -4,3 +4,4 @@
 {"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qjavascript|lineto(x, y)| moves the pen to the location (\\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q) on the paper while drawing a line from the old location to the new location.\\E$"}
 {"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QThe second selects a lens for a perspective view (the javascript|fieldOfView|) and how much of the world the camera should image (the javascript|aspectRatio| and the javascript|near| and javascript|far| distances).\\E$"}
 {"rule":"BEEN_PART_AGREEMENT","sentence":"^\\QAn example of this is bump mapping.\\E$"}
+{"rule":"ENGLISH_WORD_REPEAT_BEGINNING_RULE","sentence":"^\\QOpenGL ES 3.0 was released in 2013.\\E$"}
