@@ -962,4 +962,39 @@
 				and blended with the fragment's color
 				to create translucent effects.
 
+		\pagebreak
+
+		\section{Programmable Pipelines}
+			None of the other approaches to graphics
+			can achieve real-time behavior,
+			that is, the ability to render complex dynamic scenes
+			so that the viewer sees the display without defects,
+			in the way pipelining can.
+			The commodity graphics market is dominated by graphics cards
+			that have pipelines built into the graphics processing unit.
+
+			For many years, these pipeline architectures had a fixed functionality.
+			While the application program could set many parameters,
+			the basic operations available within the pipeline were fixed.
+
+			Now, both the vertex processor and the fragment processor are
+			programmable by the application programmer.
+			This means that many of the effects that could not be done in real time,
+			as they were not part of the fixed-function pipeline,
+			can now be done in real-time.
+			An example of this is bump mapping.
+
+			\concept{Vertex shaders} can alter the location or color of each vertex
+			as it flows through the pipeline.
+			Thus, we can implement a variety of light-material models
+			or create new kinds of projections.
+			\concept{Fragment shaders} allow us to use textures in new ways
+			and to implement other parts of the pipeline,
+			such as lighting,
+			on a per-fragment basis rather than per-vertex.
+
+			The speed and parallelism in programmable GPUs
+			make them suitable for carrying out high-performance computing
+			that does not involve graphics.
+
 \end{document}
