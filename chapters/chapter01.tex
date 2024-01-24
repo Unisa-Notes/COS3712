@@ -760,4 +760,206 @@
 				and then send these data to the GPU for rendering.
 				In a limited sense, the CPU is the modeler, and the GPU is the renderer.
 
+		\section{Graphics Architectures}
+			Early graphics systems used general-purpose computers
+			with the standard von~Neumann architecture.
+			Such computers are characterized by a single processing unit
+			that processes a single instruction at a time.
+			The display in these systems was based on a calligraphic CRT display
+			that included the necessary circuitry to generate a line segment
+			connecting two points.
+			The job of the host computer was to run the application program
+			and to compute the endpoints of line segments in the image
+			(in units of the display).
+			This information had to be sent to the display at a high enough rate
+			to avoid flicker.
+
+			\subsection{Display Processors}
+				The earliest attempts to build special-purpose graphics systems
+				were concerned primarily with relieving the general-purpose computer
+				from the task of refreshing the display continuously.
+
+				\begin{definition}{Display Processor}
+					These have conventional architectures,
+					but include instructions to display primitives on the CRT.
+
+					The main advantage of the display processor
+					was that instructions to generate the image
+					could be assembled once in the host and sent to the display processor,
+					where they were stored in the display processor's own memory
+					as a \concept{display list}, or \concept{display file}.
+
+					The display processor would then
+					repetitively execute the program in the display list,
+					at a rate sufficient to avoid flicker,
+					independently of the host,
+					thus freeing the host for other tasks.
+				\end{definition}
+
+				This architecture has become closely associated with
+				client-server architectures.
+
+			\subsection{Pipeline Architectures}
+				The ability to create special-purpose VLSI chips
+				was they key that enabled technological development.
+				Also, the availability of inexpensive solid-state memory
+				led to the universality of raster displays.
+
+				For computer graphics systems,
+				the most important use of custom VLSI circuits has been in creating
+				\concept{pipeline} architectures.
+
+				\begin{example}[Arithmetic Pipeline]
+					\begin{wrapfigure}{r}{0.5\textwidth}
+						\begin{center}
+							\includegraphics[width=0.48\textwidth]{\main/images/chapter01/arithmetic_pipeline.png}
+						\end{center}
+						\caption{Arithmetic Pipeline}
+					\end{wrapfigure}
+					In this pipeline, there is an adder and a multiplier.
+					If we use this configuration to computer $a + (b * c)$,
+					the calculation takes one multiplication and one addition
+					-- the same amount of work required if we use a single processor
+					to carry out both operations.
+
+					However, suppose that we have to carry out the same computation
+					with many values of $a$, $b$, and $c$.
+					Now, the multiplier can pass on the results of its calculation
+					to the adder,
+					and can start its next multiplication
+					while the adder carries out the second step of the calculation
+					on the first set of data.
+
+					Whereas it takes the same amount of time to calculate the results
+					for any one set of data,
+					when working on two sets of data at one time,
+					the total time for calculation is shortened markedly.
+					In this pipeline, the \concept{throughput} of the system
+					has been doubled.
+				\end{example}
+
+				\begin{definition}{Throughput}
+					The rate at which data flow through the system.
+				\end{definition}
+
+				As we add more boxes to a pipeline,
+				it takes more time for a single datum to pass through the system.
+				This time is called the \concept{latency} of the system.
+				The latency must be balanced against the increased throughput
+				when evaluating the performance of a system.
+
+			\subsection{The Graphics Pipeline}
+				Start with a set of objects.
+				Each object comprises a set of graphical primitives.
+				Each primitive comprises a set of vertices.
+				The collection of primitive types and vertices define
+				the \concept{geometry} of the scene.
+				The vertices that define the objects
+				must be processed similarly to form an image in the framebuffer.
+
+				\begin{sidenote}{Four Major Steps in the Imaging Process}
+					\begin{enumerate}
+						\item Vertex processing
+						\item Clipping and primitive assembly
+						\item Rasterization
+						\item Fragment processing
+					\end{enumerate}
+
+					\begin{center}
+						\includegraphics[width=0.9\textwidth]{\main/images/chapter01/graphics_pipeline.png}
+						\captionof{figure}{Geometric Pipeline}
+					\end{center}
+				\end{sidenote}
+
+			\subsection{Vertex Processing}
+				Each vertex is processed independently.
+				The major function of this block is to carry out coordinate transformations.
+				It can also compute a color for each vertex
+				and change any other attributes of the vertex.
+
+				Many of the steps in the imaging process
+				can be viewed as transformations between representations of objects
+				in different coordinate systems.
+				The internal representation of objects
+				-- whether in the camera coordinate system or a system used by the graphics software
+				-- must eventually be represented in terms of the coordinate system of the display.
+
+				We can represent each change of coordinate systems by a matrix.
+				We can represent successive changes in coordinate systems by
+				multiplying, or \concept{concatenating}, the individual matrices
+				into a single matrix.
+				Because multiplying one matrix by another matrix yields a third matrix,
+				a sequence of transformations is a candidate for a pipeline architecture.
+				The matrices used in computer graphics are small ($4 \times 4$),
+				so parallelism can be used within the transformation blocks in the pipeline.
+
+				After multiple stages of transformation,
+				the geometry is transformed by a projection transformation.
+				In general, we want to keep three-dimensional information as long as possible,
+				as objects pass through the pipeline.
+
+				The assignment of vertex colors can be
+				as simple as the program specifying a color,
+				or as complex as the computation of a color
+				from a physically realistic lighting model that
+				incorporates the surface properties of the object and
+				the characteristic light sources in the scene.
+
+			\pagebreak
+
+			\subsection{Clipping and Primitive Assembly}
+				We must do clipping because of the limitation that
+				no imaging system can see the whole world at once.
+				The human retina has a limited size corresponding to
+				an approximately 90-degree field of view.
+				Cameras' fields of view can be adjusted by selecting different lenses.
+
+				We obtain the equivalent property in the synthetic camera by considering
+				a \concept{clipping volume}.
+				The projections of objects within this volume appear in the image.
+				Those that are outside do not,
+				and are said to be clipped out.
+				Objects that straddle the edges of the clipping volume are
+				partly visible in the image.
+
+				Clipping must be done on a primitive-by-primitive basis
+				rather than on a vertex-by-vertex basis.
+				Thus, within this stage of the pipeline,
+				we must assemble sets of vertices into primitives,
+				before clipping can take place.
+				Consequently, the output of this stage is a set of primitives
+				whose projections can appear in the image.
+
+			\subsection{Rasterization}
+				The primitives that emerge from the clipper are still
+				represented in terms of their vertices
+				and must be converted to pixels in the framebuffer.
+
+				The output of the rasterizer is a set of \concept{fragments}
+				for each primitive.
+
+				\begin{definition}{Fragment}
+					Can be thought of as a potential pixel
+					that carries with it information,
+					including its color and location,
+					that is used to update the corresponding pixel in the framebuffer.
+
+					Fragments can also carry along depth information
+					that allows later stages to determine whether a particular fragment
+					lies behind other previously rasterized fragments for a given pixel.
+				\end{definition}
+
+			\subsection{Fragment Processing}
+				This stage takes in the fragments generated by the rasterizer
+				and updates the pixels in the framebuffer.
+				If the application generated three-dimensional data,
+				some fragments may not be visible
+				because the surfaces they define are behind other surfaces.
+
+				The color of a fragment may be altered by texture mapping or bump mapping.
+				The color of the pixel that corresponds to a fragment
+				can also be read from the framebuffer
+				and blended with the fragment's color
+				to create translucent effects.
+
 \end{document}
