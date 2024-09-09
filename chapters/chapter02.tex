@@ -160,4 +160,155 @@
         The graphics system is responsible for this task,
         and the mapping is performed automatically as part of the rendering process.
 
+    \section{Primitives and Attributes}
+      We can separate primitives into two classes:
+      \begin{descriptimize}
+        \item[Geometric Primitives] Specified in the problem domain,
+          and include points, line segments, polygons, curves, and surfaces.
+          These primitives pass through a geometric pipeline,
+          where they are subject to a series of geometric operations that determine
+          whether a primitive needs to be clipped,
+          where on the display it appears if it is visible,
+          and the rasterisation of the primitive into pixels in the framebuffer.
+
+          Because geometric primitives exist in a 2D or 3D space, they can be manipulated
+          by operations such as rotation and translation.
+          In addition, they can be used as building blocks for other geometric objects
+          using these same operations.
+        \item[Image (Raster) Primitives] Arrays of pixels.
+          Lack geometric properties, and so cannot be manipulated in space in the same way
+          as geometric primitives.
+          They pass through a separate pipeline on their way to the framebuffer.
+      \end{descriptimize}
+
+      The basic WebGL geometric primitives are specified by sets of vertices.
+      All WebGL geometric primitives are variants of points, line~segments, and triangular polygons.
+
+      \begin{sidenote}{Specifying Primitives in WebGL}
+        $ $\vspace{-1em}
+        \begin{descriptimize}
+          \item[Points (\mintinline{javascript}{gl.POINTS})] Each vertex is displayed
+            at a size of at least one pixel.
+          \item[Line Segments (\mintinline{javascript}{gl.LINES})] Successive pairs of vertices
+            are interpreted as the endpoints of individual segments.
+            Successive segments are usually disconnected, because the vertices are processed
+            on a pairwise basis.
+          \item[Polylines (\mintinline{javascript}{gl.LINE_STRIP}, \mintinline{javascript}{gl.LINE_LOOP})]
+            If successive vertices (and line segments) are to be connected,
+            use the line~strip or \concept{polyline} form.
+            Many curves can be approximated using this.
+            If we wish the polyline to be closed,
+            we can locate the final vertex in the same place as the first,
+            or use the \mintinline{javascript}{gl.LINE_LOOP} type,
+            which will draw a line segment from the final vertex to the first,
+            thus creating a closed path.
+        \end{descriptimize}
+
+        \begin{itemize}[nosep]
+          \item Use \mintinline{javascript}{glPointSize()} to set the current point size in pixels.
+          \item Use \mintinline{javascript}{glLineWidth()} to set the current line width in pixels.
+        \end{itemize}
+      \end{sidenote}
+
+      \subsection{Polygon Basics}
+        A \concept{polygon} is an object that has a border that can be described as a line loop,
+        but also has a well-defined interior.
+
+        The performance of graphics systems is characterised by the number of polygons
+        per second that can be rendered.
+
+        \begin{sidenote}{Properties to Ensure a Polygon is Displayed Correctly}
+          $ $\vspace{-1em}
+          \begin{descriptimize}[nosep]
+            \item[Simple] In 2D, no two edges of a polygon cross each other.
+            \item[Convex] All points on the line~segments between any two points
+              inside the object, or on its boundary, are inside the object.
+            \item[Flat]
+          \end{descriptimize}
+        \end{sidenote}
+
+        In 3D, polygons present extra difficulties, because all the vertices that
+        specify the object are not necessarily in the same plane.
+        A property that most graphics systems exploit is that any three vertices
+        that are not collinear determine both a triangle,
+        and the plane in which that triangle lies.
+        Hence, if we use triangles, we can be sure that these objects will be rendered correctly.
+
+        \begin{sidenote}{Drawing Triangles}
+          Triangles can be displayed in three ways:
+          \begin{itemize}[nosep]
+            \item As points corresponding to the vertices using the point type
+            \item As edges using one of the line types
+            \item With the interiors filled using a triangle type.
+          \end{itemize}
+
+          If we want to draw a polygon that is filled and display its edges,
+          then we have to render it twice: first as a filled polygon,
+          then as a line loop with the same vertices.
+          
+          \begin{descriptimize}[nosep]
+            \item[Triangles (\mintinline{javascript}{gl.TRIANGLES})] The edges are the same
+              as they would be if we used line loops.
+              Each successive group of three vertices specifies a new triangle.
+            \item[Triangle Strip (\mintinline{javascript}{gl.TRIANGLE_STRIP})]
+              Based on groups of triangles that share vertices and edges.
+              Each additional vertex is combined with the previous two vertices
+              two define a new triangle.
+            \item[Triangle Fan (\mintinline{javascript}{gl.TRIANGLE_FAN})]
+              Based on one fixed point.
+              The next two points determine the first triangle,
+              and subsequent triangles are formed from one new point,
+              the previous point, and the first (fixed) point.
+          \end{descriptimize}
+
+          Use \mintinline{javascript}{glPolygonMode()} to tell the renderer to generate
+          only the edges or just points for the vertices, instead of fill (the default).
+        \end{sidenote}
+
+      \subsection{Triangulation}
+        \begin{definition}{Triangulation}
+          The process of approximating a general geometric object by subdividing it into
+          a set of triangles.
+        \end{definition}
+
+        Although every set of vertices can be triangulated, not all triangulations are equivalent.
+        Triangulation is a special case of the more general problem of
+        \concept{tessellation}, which divides a polygon into a polygonal mesh,
+        not all of which need to be triangles.
+
+      \subsection{Text}
+        \begin{sidenote}{Types of Text}
+          $ $\vspace{-1em}
+          \begin{descriptimize}
+            \item[Stroke Text] Constructed like other geometric objects.
+              Use vertices to define line segments or curves that outline each character.
+              If the characters are defined by closed boundaries, we can fill them.
+              The advantage of stroke text is that it can be defined to have all the detail
+              of any other object, and because it is defined in the same way as other graphical
+              objects, it cab be manipulated using standard transformations,
+              and viewed like any other graphical primitive.
+            \item[Raster Text] Simple and fast.
+              Characters are defined as rectangles of bits called \concept{bit blocks}.
+              Each block defines a single character by the pattern of 0 and 1 bits
+              in the block.
+              A raster character can be placed in the framebuffer rapidly
+              by a \concept{bit-block-transfer} operation,
+              which moves the block of bits using a single function call.
+
+              You can increase the size of raster characters by \concept{replicating}
+              or duplicating pixels -- a process that gives larger characters a blocky
+              appearance.
+              Other transformations of raster characters may not make sense.
+          \end{descriptimize}
+        \end{sidenote}
+
+      \subsection{Attributes}
+        \begin{definition}{Attributes}
+          Properties that describe how an object should be rendered.
+        \end{definition}
+
+        Available attributes depend on the type of object.
+        Attributes may be associated with, or \concept{bound} to, a specific geometric object.
+        We can also associate properties with each vertex.
+
 \end{document}
