@@ -4,4 +4,54 @@
 \begin{document}
   \setcounter{chapter}{1}
   \chapter{Graphics Programming}
+    Two-dimensional graphics can be viewed as a special case of three-dimensional graphics.
+
+    \section{The Sierpinski Gasket}
+      \begin{definition}{Sierpinski Gasket}
+        The \concept{Sierpinski Gasket} is an object that can be defined recursively and randomly,
+        but has properties that are not random.
+
+        Suppose we start with three points in space.
+        As long as the points are not collinear, they are the vertices of a unique triangle
+        and also define a unique plane.
+        Assume this plane is the plane $z = 0$ and that these points are $(x_1, y_1, 0)$,
+        $(x_2, y_2, 0)$ and $(x_3, y_3, 0)$.
+        The construction proceeds as:
+        \begin{enumerate}
+          \item Pick an initial point $\mathbf{p} = (x, y, 0)$ at random inside the triangle.
+          \item \label{sierp:2} Select one of the three vertices at random.
+          \item Find the point $\mathbf{q}$ halfway between $\mathbf{p}$ and the selected vertex.
+          \item Display $\mathbf{q}$ by putting some sort of marker,
+            such as a small circle,
+            at the corresponding location on the display.
+          \item Replace $\mathbf{p}$ with $\mathbf{q}$.
+          \item Return to step \ref{sierp:2}.
+        \end{enumerate}
+      \end{definition}
+
+      \begin{definition}{Immediate Mode Graphics}
+        As vertices are generated, they are sent directly to the graphics processor
+        for rendering on the display.
+
+        Until recently, was the standard method for displaying graphics.
+        A consequence is that there is no memory of the geometric data,
+        so if we want to redisplay the scene, we have to go through the entire creation
+        and display process again.
+      \end{definition}
+
+      \begin{definition}{Retained Mode Graphics}
+        Compute all the points first and store them in a data structure.
+        Then display all the points through a single function call.
+
+        This approach avoids the overhead of sending small amounts of data to the graphics
+        processor for each point we generate,
+        at the cost of having to store all the data.
+        Because the data are stored, we can redisplay the scene, by resending the stored data
+        without having to regenerate it.
+
+        Current GPUs allow us to store the generated data directly on the GPU,
+        which avoids the bottleneck caused by transferring the data from the CPU to the GPU
+        each time we wish to redisplay the scene.
+      \end{definition}
+
 \end{document}
