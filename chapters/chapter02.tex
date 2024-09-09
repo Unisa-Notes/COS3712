@@ -4,8 +4,6 @@
 \begin{document}
   \setcounter{chapter}{1}
   \chapter{Graphics Programming}
-    Two-dimensional graphics can be viewed as a special case of three-dimensional graphics.
-
     \section{The Sierpinski Gasket}
       \begin{definition}{Sierpinski Gasket}
         The \concept{Sierpinski Gasket} is an object that can be defined recursively and randomly,
@@ -52,6 +50,36 @@
         Current GPUs allow us to store the generated data directly on the GPU,
         which avoids the bottleneck caused by transferring the data from the CPU to the GPU
         each time we wish to redisplay the scene.
+      \end{definition}
+
+    \section{Programming Two-Dimensional Applications}
+      Two-dimensional graphics can be viewed as a special case of three-dimensional graphics.
+      The 2D-plane is a subspace of 3D-space.
+
+      A point in the plane $z = 0$ can be represented as $\mathbf{p} = (x, y, 0)$ in the 3D world,
+      or as $\mathbf{p} = (x, y)$ in the 2D plane.
+
+      \begin{sidenote}{Vertices}
+        A \concept{vertex} is a position in space.
+        We use vertices to specify the atomic geometric primitives that are recognized
+        by out graphics system.
+
+        The simplest geometric primitive is a \concept{point} in space,
+        which is usually specified by a single vertex.
+        Two vertices can specify a line segment.
+        Three can specify a triangle or circle,
+        and so on.
+      \end{sidenote}
+
+      \begin{definition}{Clip Coordinate System}
+        A cube centred at the origin whose diagonal goes from $(-1, -1, -1)$ to $(1, 1, 1)$.
+
+        Objects outside of this cube will be eliminated (or \concept{clipped}) and cannot appear
+        on the display.
+
+        The vertex shader uses transformations to convert geometric data
+        specified in some coordinate system to a representation in clip~coordinates,
+        and outputs this information to the rasterizer.
       \end{definition}
 
 \end{document}
