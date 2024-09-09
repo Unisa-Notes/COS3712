@@ -82,4 +82,82 @@
         and outputs this information to the rasterizer.
       \end{definition}
 
+    \pagebreak
+
+    \section[The WebGL Application Programming Interface] {\sectionmark{The WebGL API}The WebGL Application Programming Interface}
+      \sectionmark{The WebGL API}
+      Our basic model of a graphics package is a \concept{black box}:
+      a system whose properties are described only by its inputs and outputs;
+      we know nothing about its internal workings.
+
+      \begin{sidenote}{Function Groups for a Graphics System API}
+        $ $\vspace{-1em}
+        \begin{descriptenum}[nosep]
+          \item[Primitive Functions] Define the low-level objects or atomic entities
+            that our system can display.
+            WebGL and OpenGL only support points, line segments, and triangles.
+          \item[Attribute Functions] Allow us to perform operations to change the
+            \concept{attributes} of a primitive.
+            Attributes govern the way a primitive appears on the display.
+          \item[Viewing Functions] Allow us to specify various views.
+            WebGL and OpenGL do not provide any viewing functions,
+            but rely on the use of transformations in the application or in the shaders.
+          \item[Transformation Functions] Allows users to carry out transformations of objects,
+            such as rotation, translation, and scaling.
+            In WebGL, we carry out transformations by forming them in our applications,
+            and then applying them either in the application or in the shaders.
+          \item[Input Functions] Allows us to deal with input devices.
+          \item[Control Functions] Enable use to communicate with the window system,
+            to initialise our programs, and to deal with any errors that take place
+            during the execution of our programs.
+          \item[Query Functions] Provides additional information about the operating environment,
+            such as camera parameters and values in the frame buffer.
+        \end{descriptenum}
+      \end{sidenote}
+
+      \subsection{The Graphics Pipeline and State Machines}
+        We can think of the entire graphics system as a \concept{state~machine}:
+        a black box that contains a finite-state machine.
+        The state machine has inputs that come from the application program.
+        These inputs may change the state of the machine, or cause the machine to produce
+        a visible output.
+
+        One important consequence of the state machine view is that most parameters are
+        \emph{persistent}: their values remain unchanged until we explicitly change them
+        through functions that alter the state.
+        Another consequence is that attributes are part of the state,
+        rather than being bound to objects.
+
+        \begin{sidenote}{Shader Functions}
+          Part of the old textbook, not in the new.
+
+          OpenGL functions are in a single library called GL.
+          Shaders are written in the OpenGL Shading Language (GLSL),
+          which has a separate specification.
+
+          Functions that transfer data to the shaders have the following notation:
+          \begin{center}
+            \mintinline{text}{glSomeFunction*();}
+          \end{center}
+          where \texttt{*} can be interpreted as $nt$ or $ntv$, where $n$ signifies the number of dimensions,
+          $t$ denotes the data type, and $v$ indicates that the variables are specified through
+          a pointer to an array, rather than through an argument list.
+        \end{sidenote}
+
+      \subsection{Coordinate Systems}
+        The advent of \concept{device-independent~graphics} freed application programmers
+        from worrying about the details of input and output devices.
+        The user's coordinate system become known as the \concept{world~coordinate~system},
+        or the \concept{application (or object) coordinate system}.
+
+        Units that the application program uses to specify vertex positions are called
+        \concept{vertex~coordinates}, and will generally be the same as object or world coordinates.
+
+        For raster devices, units on the display are called \concept{window coordinates}
+        or \concept{screen coordinates}.
+
+        At some point, the values in vertex coordinates must be mapped to window coordinates.
+        The graphics system is responsible for this task,
+        and the mapping is performed automatically as part of the rendering process.
+
 \end{document}
