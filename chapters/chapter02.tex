@@ -311,4 +311,96 @@
         Attributes may be associated with, or \concept{bound} to, a specific geometric object.
         We can also associate properties with each vertex.
 
+    \section{Colour}
+      Our brains receive three values -- the \concept{tristimulus values} --
+      that are the responses of the three types of cones to the colour.
+
+      \begin{definition}{Basic Tenet of Colour Theory}
+        If two colours produce the same tristimulus values,
+        then they are visually indistinguishable.
+      \end{definition}
+
+      \begin{definition}{Additive Colour}
+        Primary colours add together to give the perceived colour.
+        The primaries are usually red, green, and blue.
+        Primaries add light to an initially black display, yielding the desired colour.
+
+        An example is the CRT.
+      \end{definition}
+
+      \begin{definition}{Subtractive Colour}
+        Start with a white surface.
+        Coloured pigments remove colour components from light that is striking the surface.
+        In these systems, the primaries are usually the \emph{complementary colours}:
+        cyan, magenta, and yellow.
+      \end{definition}
+
+      We can view a colour as point in a \concept{colour solid}.
+      We draw a solid using a coordinate system corresponding to the three primaries.
+      The distance along a coordinate axis represents the amount of the corresponding
+      primary colour.
+      If we normalise the maximum value of each primary to 1,
+      we can represent any colour we can produce with this set of primaries as a point
+      on a unit cube.
+
+      \subsection{RGB Colour}
+        There are two approaches to colour in programming: the \concept{RGB Colour Model},
+        and the \concept{Indexed Colour Model}.
+        The Indexed model was used previously due to being easier to support in hardware
+        because of its lower memory requirements and the limited colours available on displays.
+
+        In a three-primary colour, additive RGB system, there are conceptually
+        separate buffers for red, green, and blue images.
+        Each pixel might consist of 24~bits: 1~bytes each for red, green, and blue.
+        The specification of RGB colours is based on the colour cube.
+        Components are specified as numbers between 0 and 1, where where 1 denotes the maximum
+        (or \concept{saturated value}) of the corresponding primary.
+
+        RGB can be extended into \concept{RGBA} -- the fourth colour (A, or \concept{alpha})
+        is stored in the framebuffer along with the RGB values.
+        Alpha is treated as either an opacity or transparency value.
+        Transparency and opacity are complements of each other:
+        an \emph{opaque} object lets no light through it, a \emph{transparent} object
+        passes all light through it.
+        Opacity values can range from fully transparent ($A = 0$) to fully opaque ($A = 1$).
+
+        In WebGL, unlike desktop OpenGL, if blending is not enabled,
+        the value of A multiplies the R, G, and B values.
+        Thus, values of A less than 1.0 mute the colours.
+
+      \subsection{Indexed Colour}
+        Early graphics systems had framebuffers that were limited in depth.
+        We could divide each pixel's limited 8~bits into smaller groups of bits
+        and assign red, green, and blue to each.
+        This technique did not give flexibility in colour assignment.
+        Indexed colour provided a solution that allowed applications to display a wide range
+        of colours as long as the application did not need more colours than could be
+        referenced.
+
+        Choose for each application a limited number of colours from a large selection
+        (our \concept{palette}).
+        We can select colours by interpreting out limited-depth pixels as indices into a table
+        of colours rather than as colour values.
+        If our framebuffer has $k$ bits per pixel, then each pixel value or index is an integer
+        between $0$ and $2^k - 1$.
+        Suppose we can display each colour component with a precision of $m$~bits:
+        we can choose from $2^m$~reds, $2^m$~greens, and $2^m$~blues.
+        So, we can produce any $2^{3m}$ colours on the display,
+        but the framebuffer can specify only $2^k$ of them.
+        Handle the specification through a user-defined \concept{colour~lookup~table}
+        that is of size $2^k \times 3m$.
+        The user program fills the $2^k$ entries of the table with the desired colours,
+        using $m$ bits for each of red, green, and blue.
+        Once the user has constructed the table, they can specify a colour by its index,
+        which points to the appropriate entry in the loop table.
+
+        Historically, color index mode was important because it required less memory
+        for the framebuffer and fewer other hardware components.
+        Cost is no longer an issue, and this mode provides a few problems:
+        \begin{itemize}
+          \item When we work with dynamic images that must be shaded,
+            usually we need more images than are provided by the color-index mode.
+          \item The interaction with the window system is more complex than with RGB color.
+        \end{itemize}
+
 \end{document}
