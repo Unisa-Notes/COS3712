@@ -1,0 +1,463 @@
+\providecommand{\main}{..}
+\documentclass[../notes.tex]{subfiles}
+
+\begin{document}
+  \setcounter{chapter}{1}
+  \chapter{Graphics Programming}
+    \section{The Sierpinski Gasket}
+      \begin{definition}{Sierpinski Gasket}
+        The \concept{Sierpinski Gasket} is an object that can be defined recursively and randomly,
+        but has properties that are not random.
+
+        Suppose we start with three points in space.
+        As long as the points are not collinear, they are the vertices of a unique triangle
+        and also define a unique plane.
+        Assume this plane is the plane $z = 0$ and that these points are $(x_1, y_1, 0)$,
+        $(x_2, y_2, 0)$ and $(x_3, y_3, 0)$.
+        The construction proceeds as:
+        \begin{enumerate}
+          \item Pick an initial point $\mathbf{p} = (x, y, 0)$ at random inside the triangle.
+          \item \label{sierp:2} Select one of the three vertices at random.
+          \item Find the point $\mathbf{q}$ halfway between $\mathbf{p}$ and the selected vertex.
+          \item Display $\mathbf{q}$ by putting some sort of marker,
+            such as a small circle,
+            at the corresponding location on the display.
+          \item Replace $\mathbf{p}$ with $\mathbf{q}$.
+          \item Return to step \ref{sierp:2}.
+        \end{enumerate}
+      \end{definition}
+
+      \begin{definition}{Immediate Mode Graphics}
+        As vertices are generated, they are sent directly to the graphics processor
+        for rendering on the display.
+
+        Until recently, was the standard method for displaying graphics.
+        A consequence is that there is no memory of the geometric data,
+        so if we want to redisplay the scene, we have to go through the entire creation
+        and display process again.
+      \end{definition}
+
+      \begin{definition}{Retained Mode Graphics}
+        Compute all the points first and store them in a data structure.
+        Then display all the points through a single function call.
+
+        This approach avoids the overhead of sending small amounts of data to the graphics
+        processor for each point we generate,
+        at the cost of having to store all the data.
+        Because the data are stored, we can redisplay the scene, by resending the stored data
+        without having to regenerate it.
+
+        Current GPUs allow us to store the generated data directly on the GPU,
+        which avoids the bottleneck caused by transferring the data from the CPU to the GPU
+        each time we wish to redisplay the scene.
+      \end{definition}
+
+    \section{Programming Two-Dimensional Applications}
+      Two-dimensional graphics can be viewed as a special case of three-dimensional graphics.
+      The 2D-plane is a subspace of 3D-space.
+
+      A point in the plane $z = 0$ can be represented as $\mathbf{p} = (x, y, 0)$ in the 3D world,
+      or as $\mathbf{p} = (x, y)$ in the 2D plane.
+
+      \begin{sidenote}{Vertices}
+        A \concept{vertex} is a position in space.
+        We use vertices to specify the atomic geometric primitives that are recognized
+        by out graphics system.
+
+        The simplest geometric primitive is a \concept{point} in space,
+        which is usually specified by a single vertex.
+        Two vertices can specify a line segment.
+        Three can specify a triangle or circle,
+        and so on.
+      \end{sidenote}
+
+      \begin{definition}{Clip Coordinate System}
+        A cube centred at the origin whose diagonal goes from $(-1, -1, -1)$ to $(1, 1, 1)$.
+
+        Objects outside of this cube will be eliminated (or \concept{clipped}) and cannot appear
+        on the display.
+
+        The vertex shader uses transformations to convert geometric data
+        specified in some coordinate system to a representation in clip~coordinates,
+        and outputs this information to the rasterizer.
+      \end{definition}
+
+    \pagebreak
+
+    \section[The WebGL Application Programming Interface] {\sectionmark{The WebGL API}The WebGL Application Programming Interface}
+      \sectionmark{The WebGL API}
+      Our basic model of a graphics package is a \concept{black box}:
+      a system whose properties are described only by its inputs and outputs;
+      we know nothing about its internal workings.
+
+      \begin{sidenote}{Function Groups for a Graphics System API}
+        $ $\vspace{-1em}
+        \begin{descriptenum}[nosep]
+          \item[Primitive Functions] Define the low-level objects or atomic entities
+            that our system can display.
+            WebGL and OpenGL only support points, line segments, and triangles.
+          \item[Attribute Functions] Allow us to perform operations to change the
+            \concept{attributes} of a primitive.
+            Attributes govern the way a primitive appears on the display.
+          \item[Viewing Functions] Allow us to specify various views.
+            WebGL and OpenGL do not provide any viewing functions,
+            but rely on the use of transformations in the application or in the shaders.
+          \item[Transformation Functions] Allows users to carry out transformations of objects,
+            such as rotation, translation, and scaling.
+            In WebGL, we carry out transformations by forming them in our applications,
+            and then applying them either in the application or in the shaders.
+          \item[Input Functions] Allows us to deal with input devices.
+          \item[Control Functions] Enable use to communicate with the window system,
+            to initialise our programs, and to deal with any errors that take place
+            during the execution of our programs.
+          \item[Query Functions] Provides additional information about the operating environment,
+            such as camera parameters and values in the frame buffer.
+        \end{descriptenum}
+      \end{sidenote}
+
+      \subsection{The Graphics Pipeline and State Machines}
+        We can think of the entire graphics system as a \concept{state~machine}:
+        a black box that contains a finite-state machine.
+        The state machine has inputs that come from the application program.
+        These inputs may change the state of the machine, or cause the machine to produce
+        a visible output.
+
+        One important consequence of the state machine view is that most parameters are
+        \emph{persistent}: their values remain unchanged until we explicitly change them
+        through functions that alter the state.
+        Another consequence is that attributes are part of the state,
+        rather than being bound to objects.
+
+        \begin{sidenote}{Shader Functions}
+          Part of the old textbook, not in the new.
+
+          OpenGL functions are in a single library called GL.
+          Shaders are written in the OpenGL Shading Language (GLSL),
+          which has a separate specification.
+
+          Functions that transfer data to the shaders have the following notation:
+          \begin{center}
+            \mintinline{text}{glSomeFunction*();}
+          \end{center}
+          where \texttt{*} can be interpreted as $nt$ or $ntv$, where $n$ signifies the number of dimensions,
+          $t$ denotes the data type, and $v$ indicates that the variables are specified through
+          a pointer to an array, rather than through an argument list.
+        \end{sidenote}
+
+      \subsection{Coordinate Systems}
+        The advent of \concept{device-independent~graphics} freed application programmers
+        from worrying about the details of input and output devices.
+        The user's coordinate system become known as the \concept{world~coordinate~system},
+        or the \concept{application (or object) coordinate system}.
+
+        Units that the application program uses to specify vertex positions are called
+        \concept{vertex~coordinates}, and will generally be the same as object or world coordinates.
+
+        For raster devices, units on the display are called \concept{window coordinates}
+        or \concept{screen coordinates}.
+
+        At some point, the values in vertex coordinates must be mapped to window coordinates.
+        The graphics system is responsible for this task,
+        and the mapping is performed automatically as part of the rendering process.
+
+    \section{Primitives and Attributes}
+      We can separate primitives into two classes:
+      \begin{descriptimize}
+        \item[Geometric Primitives] Specified in the problem domain,
+          and include points, line segments, polygons, curves, and surfaces.
+          These primitives pass through a geometric pipeline,
+          where they are subject to a series of geometric operations that determine
+          whether a primitive needs to be clipped,
+          where on the display it appears if it is visible,
+          and the rasterisation of the primitive into pixels in the framebuffer.
+
+          Because geometric primitives exist in a 2D or 3D space, they can be manipulated
+          by operations such as rotation and translation.
+          In addition, they can be used as building blocks for other geometric objects
+          using these same operations.
+        \item[Image (Raster) Primitives] Arrays of pixels.
+          Lack geometric properties, and so cannot be manipulated in space in the same way
+          as geometric primitives.
+          They pass through a separate pipeline on their way to the framebuffer.
+      \end{descriptimize}
+
+      The basic WebGL geometric primitives are specified by sets of vertices.
+      All WebGL geometric primitives are variants of points, line~segments, and triangular polygons.
+
+      \begin{sidenote}{Specifying Primitives in WebGL}
+        $ $\vspace{-1em}
+        \begin{descriptimize}
+          \item[Points (\mintinline{javascript}{gl.POINTS})] Each vertex is displayed
+            at a size of at least one pixel.
+          \item[Line Segments (\mintinline{javascript}{gl.LINES})] Successive pairs of vertices
+            are interpreted as the endpoints of individual segments.
+            Successive segments are usually disconnected, because the vertices are processed
+            on a pairwise basis.
+          \item[Polylines (\mintinline{javascript}{gl.LINE_STRIP}, \mintinline{javascript}{gl.LINE_LOOP})]
+            If successive vertices (and line segments) are to be connected,
+            use the line~strip or \concept{polyline} form.
+            Many curves can be approximated using this.
+            If we wish the polyline to be closed,
+            we can locate the final vertex in the same place as the first,
+            or use the \mintinline{javascript}{gl.LINE_LOOP} type,
+            which will draw a line segment from the final vertex to the first,
+            thus creating a closed path.
+        \end{descriptimize}
+
+        \begin{itemize}[nosep]
+          \item Use \mintinline{javascript}{glPointSize()} to set the current point size in pixels.
+          \item Use \mintinline{javascript}{glLineWidth()} to set the current line width in pixels.
+        \end{itemize}
+      \end{sidenote}
+
+      \subsection{Polygon Basics}
+        A \concept{polygon} is an object that has a border that can be described as a line loop,
+        but also has a well-defined interior.
+
+        The performance of graphics systems is characterised by the number of polygons
+        per second that can be rendered.
+
+        \begin{sidenote}{Properties to Ensure a Polygon is Displayed Correctly}
+          $ $\vspace{-1em}
+          \begin{descriptimize}[nosep]
+            \item[Simple] In 2D, no two edges of a polygon cross each other.
+            \item[Convex] All points on the line~segments between any two points
+              inside the object, or on its boundary, are inside the object.
+            \item[Flat]
+          \end{descriptimize}
+        \end{sidenote}
+
+        In 3D, polygons present extra difficulties, because all the vertices that
+        specify the object are not necessarily in the same plane.
+        A property that most graphics systems exploit is that any three vertices
+        that are not collinear determine both a triangle,
+        and the plane in which that triangle lies.
+        Hence, if we use triangles, we can be sure that these objects will be rendered correctly.
+
+        \begin{sidenote}{Drawing Triangles}
+          Triangles can be displayed in three ways:
+          \begin{itemize}[nosep]
+            \item As points corresponding to the vertices using the point type
+            \item As edges using one of the line types
+            \item With the interiors filled using a triangle type.
+          \end{itemize}
+
+          If we want to draw a polygon that is filled and display its edges,
+          then we have to render it twice: first as a filled polygon,
+          then as a line loop with the same vertices.
+          
+          \begin{descriptimize}[nosep]
+            \item[Triangles (\mintinline{javascript}{gl.TRIANGLES})] The edges are the same
+              as they would be if we used line loops.
+              Each successive group of three vertices specifies a new triangle.
+            \item[Triangle Strip (\mintinline{javascript}{gl.TRIANGLE_STRIP})]
+              Based on groups of triangles that share vertices and edges.
+              Each additional vertex is combined with the previous two vertices
+              two define a new triangle.
+            \item[Triangle Fan (\mintinline{javascript}{gl.TRIANGLE_FAN})]
+              Based on one fixed point.
+              The next two points determine the first triangle,
+              and subsequent triangles are formed from one new point,
+              the previous point, and the first (fixed) point.
+          \end{descriptimize}
+
+          Use \mintinline{javascript}{glPolygonMode()} to tell the renderer to generate
+          only the edges or just points for the vertices, instead of fill (the default).
+        \end{sidenote}
+
+      \subsection{Triangulation}
+        \begin{definition}{Triangulation}
+          The process of approximating a general geometric object by subdividing it into
+          a set of triangles.
+        \end{definition}
+
+        Although every set of vertices can be triangulated, not all triangulations are equivalent.
+        Triangulation is a special case of the more general problem of
+        \concept{tessellation}, which divides a polygon into a polygonal mesh,
+        not all of which need to be triangles.
+
+      \subsection{Text}
+        \begin{sidenote}{Types of Text}
+          $ $\vspace{-1em}
+          \begin{descriptimize}
+            \item[Stroke Text] Constructed like other geometric objects.
+              Use vertices to define line segments or curves that outline each character.
+              If the characters are defined by closed boundaries, we can fill them.
+              The advantage of stroke text is that it can be defined to have all the detail
+              of any other object, and because it is defined in the same way as other graphical
+              objects, it cab be manipulated using standard transformations,
+              and viewed like any other graphical primitive.
+            \item[Raster Text] Simple and fast.
+              Characters are defined as rectangles of bits called \concept{bit blocks}.
+              Each block defines a single character by the pattern of 0 and 1 bits
+              in the block.
+              A raster character can be placed in the framebuffer rapidly
+              by a \concept{bit-block-transfer} operation,
+              which moves the block of bits using a single function call.
+
+              You can increase the size of raster characters by \concept{replicating}
+              or duplicating pixels -- a process that gives larger characters a blocky
+              appearance.
+              Other transformations of raster characters may not make sense.
+          \end{descriptimize}
+        \end{sidenote}
+
+      \subsection{Attributes}
+        \begin{definition}{Attributes}
+          Properties that describe how an object should be rendered.
+        \end{definition}
+
+        Available attributes depend on the type of object.
+        Attributes may be associated with, or \concept{bound} to, a specific geometric object.
+        We can also associate properties with each vertex.
+
+    \section{Colour}
+      Our brains receive three values -- the \concept{tristimulus values} --
+      that are the responses of the three types of cones to the colour.
+
+      \begin{definition}{Basic Tenet of Colour Theory}
+        If two colours produce the same tristimulus values,
+        then they are visually indistinguishable.
+      \end{definition}
+
+      \begin{definition}{Additive Colour}
+        Primary colours add together to give the perceived colour.
+        The primaries are usually red, green, and blue.
+        Primaries add light to an initially black display, yielding the desired colour.
+
+        An example is the CRT.
+      \end{definition}
+
+      \begin{definition}{Subtractive Colour}
+        Start with a white surface.
+        Coloured pigments remove colour components from light that is striking the surface.
+        In these systems, the primaries are usually the \emph{complementary colours}:
+        cyan, magenta, and yellow.
+      \end{definition}
+
+      We can view a colour as point in a \concept{colour solid}.
+      We draw a solid using a coordinate system corresponding to the three primaries.
+      The distance along a coordinate axis represents the amount of the corresponding
+      primary colour.
+      If we normalise the maximum value of each primary to 1,
+      we can represent any colour we can produce with this set of primaries as a point
+      on a unit cube.
+
+      \subsection{RGB Colour}
+        There are two approaches to colour in programming: the \concept{RGB Colour Model},
+        and the \concept{Indexed Colour Model}.
+        The Indexed model was used previously due to being easier to support in hardware
+        because of its lower memory requirements and the limited colours available on displays.
+
+        In a three-primary colour, additive RGB system, there are conceptually
+        separate buffers for red, green, and blue images.
+        Each pixel might consist of 24~bits: 1~bytes each for red, green, and blue.
+        The specification of RGB colours is based on the colour cube.
+        Components are specified as numbers between 0 and 1, where where 1 denotes the maximum
+        (or \concept{saturated value}) of the corresponding primary.
+
+        RGB can be extended into \concept{RGBA} -- the fourth colour (A, or \concept{alpha})
+        is stored in the framebuffer along with the RGB values.
+        Alpha is treated as either an opacity or transparency value.
+        Transparency and opacity are complements of each other:
+        an \emph{opaque} object lets no light through it, a \emph{transparent} object
+        passes all light through it.
+        Opacity values can range from fully transparent ($A = 0$) to fully opaque ($A = 1$).
+
+        In WebGL, unlike desktop OpenGL, if blending is not enabled,
+        the value of A multiplies the R, G, and B values.
+        Thus, values of A less than 1.0 mute the colours.
+
+      \subsection{Indexed Colour}
+        Early graphics systems had framebuffers that were limited in depth.
+        We could divide each pixel's limited 8~bits into smaller groups of bits
+        and assign red, green, and blue to each.
+        This technique did not give flexibility in colour assignment.
+        Indexed colour provided a solution that allowed applications to display a wide range
+        of colours as long as the application did not need more colours than could be
+        referenced.
+
+        Choose for each application a limited number of colours from a large selection
+        (our \concept{palette}).
+        We can select colours by interpreting out limited-depth pixels as indices into a table
+        of colours rather than as colour values.
+        If our framebuffer has $k$ bits per pixel, then each pixel value or index is an integer
+        between $0$ and $2^k - 1$.
+        Suppose we can display each colour component with a precision of $m$~bits:
+        we can choose from $2^m$~reds, $2^m$~greens, and $2^m$~blues.
+        So, we can produce any $2^{3m}$ colours on the display,
+        but the framebuffer can specify only $2^k$ of them.
+        Handle the specification through a user-defined \concept{colour~lookup~table}
+        that is of size $2^k \times 3m$.
+        The user program fills the $2^k$ entries of the table with the desired colours,
+        using $m$ bits for each of red, green, and blue.
+        Once the user has constructed the table, they can specify a colour by its index,
+        which points to the appropriate entry in the loop table.
+
+        Historically, color index mode was important because it required less memory
+        for the framebuffer and fewer other hardware components.
+        Cost is no longer an issue, and this mode provides a few problems:
+        \begin{itemize}
+          \item When we work with dynamic images that must be shaded,
+            usually we need more images than are provided by the color-index mode.
+          \item The interaction with the window system is more complex than with RGB color.
+        \end{itemize}
+
+    \section{Viewing}
+      The specification of objects in out scene is completely independent of our specification
+      of the camera.
+      Once we have specified both the scene and the camera, we can compose an image.
+
+      The simplest view, and WebGL's default is the \concept{orthographic projection}.
+      All projectors are parallel and the centre of projection is replaced by a
+      \concept{direction of projection}.
+      Projectors are perpendicular to the projection plane.
+      The orthographic projection takes a point $(x, y, z)$ and projects it into the point
+      $(x, y, 0)$.
+
+    \section{Control Functions}
+      \subsection{Interaction with the Window System}
+        A \concept{window} is a rectangular area of a display.
+        It has a height and width, and because the window displays the contents of the framebuffer,
+        positions in the window are measured in \concept{window (or screen) coordinates}
+        where the units are pixels.
+        Window coordinates are 3D, whereas screen coordinates are 2D.
+        The term \concept{window~system} refers to the multiwindow environment provided
+        by different systems.
+
+        References to positions in a window are relative to one corner of the window,
+        normally the top left.
+        WebGL functions assume that the origin is the bottom left.
+
+      \subsection{Aspect Ratio and Viewports}
+        The \concept{aspect~ratio} of a rectangle is the ratio of the rectangle's
+        width to its height.
+        If the aspect ratio of the viewing rectangle is not the same as the aspect ratio
+        of the specified window, then objects are distorted on the screen.
+        We can avoid this distortion by ensuring the clipping rectangle and the display window
+        have the same ratio.
+
+        A \concept{viewport} is a rectangular area of the display window.
+        By default, it is the entire window, but it can be set to any smaller size in pixels
+        using the function
+        \begin{minted}[autogobble]{javascript}
+          gl.viewport(x, y, w, h);
+        \end{minted}
+        where \mintinline{javascript}{(x, y)} is the lower-left corner of the viewport,
+        and \texttt{w} and \texttt{h} give the width and height, respectively.
+
+      \subsection{Application Organisation}
+        The mechanism used for controlling graphics employed by most graphics and window systems
+        is to use \concept{event~processing}, which gives us interactive control in our programs.
+        \concept{Events} are changes that are detected by the operating system.
+        An event may generate data that is stored with the occurrence of the event.
+        When events occur, they are placed in a queue, the \concept{event~queue},
+        which can be examined by an application program or by the OS.
+
+        With WebGL, we will be able to identify the events to which we want to react through
+        functions called \concept{event~listeners} or \concept{callbacks}.
+        A callback function is associated with a specific type of event.
+
+    \rulechapterend
+
+\end{document}
