@@ -403,4 +403,61 @@
           \item The interaction with the window system is more complex than with RGB color.
         \end{itemize}
 
+    \section{Viewing}
+      The specification of objects in out scene is completely independent of our specification
+      of the camera.
+      Once we have specified both the scene and the camera, we can compose an image.
+
+      The simplest view, and WebGL's default is the \concept{orthographic projection}.
+      All projectors are parallel and the centre of projection is replaced by a
+      \concept{direction of projection}.
+      Projectors are perpendicular to the projection plane.
+      The orthographic projection takes a point $(x, y, z)$ and projects it into the point
+      $(x, y, 0)$.
+
+    \section{Control Functions}
+      \subsection{Interaction with the Window System}
+        A \concept{window} is a rectangular area of a display.
+        It has a height and width, and because the window displays the contents of the framebuffer,
+        positions in the window are measured in \concept{window (or screen) coordinates}
+        where the units are pixels.
+        Window coordinates are 3D, whereas screen coordinates are 2D.
+        The term \concept{window~system} refers to the multiwindow environment provided
+        by different systems.
+
+        References to positions in a window are relative to one corner of the window,
+        normally the top left.
+        WebGL functions assume that the origin is the bottom left.
+
+      \subsection{Aspect Ratio and Viewports}
+        The \concept{aspect~ratio} of a rectangle is the ratio of the rectangle's
+        width to its height.
+        If the aspect ratio of the viewing rectangle is not the same as the aspect ratio
+        of the specified window, then objects are distorted on the screen.
+        We can avoid this distortion by ensuring the clipping rectangle and the display window
+        have the same ratio.
+
+        A \concept{viewport} is a rectangular area of the display window.
+        By default, it is the entire window, but it can be set to any smaller size in pixels
+        using the function
+        \begin{minted}[autogobble]{javascript}
+          gl.viewport(x, y, w, h);
+        \end{minted}
+        where \mintinline{javascript}{(x, y)} is the lower-left corner of the viewport,
+        and \texttt{w} and \texttt{h} give the width and height, respectively.
+
+      \subsection{Application Organisation}
+        The mechanism used for controlling graphics employed by most graphics and window systems
+        is to use \concept{event~processing}, which gives us interactive control in our programs.
+        \concept{Events} are changes that are detected by the operating system.
+        An event may generate data that is stored with the occurrence of the event.
+        When events occur, they are placed in a queue, the \concept{event~queue},
+        which can be examined by an application program or by the OS.
+
+        With WebGL, we will be able to identify the events to which we want to react through
+        functions called \concept{event~listeners} or \concept{callbacks}.
+        A callback function is associated with a specific type of event.
+
+    \rulechapterend
+
 \end{document}
