@@ -284,4 +284,71 @@
 
         If the determinant of a matrix is 0, the vectors inside the matrix are linearly dependent.
 
+    \section{Three Dimensional Primitives}
+      \begin{sidenote}{Features of 3D Objects That Work with Existing Graphics}
+        $ $\vspace{-1em}
+        \begin{itemize}
+          \item The objects are described by their surfaces and can be thought of as being hollow.
+          \item The objects can be specified through a set of vertices in three dimensions.
+          \item The objects are either composed of, or can be approximated by, flat, convex polygons.
+        \end{itemize}
+      \end{sidenote}
+
+    \pagebreak
+
+    \section{Frames in WebGL}
+      \begin{sidenote}{Order of Frames in the Pipeline}
+        Note that the names have changed between the versions, for the first two.
+
+        \begin{descriptenum}
+          \item[Model Coordinates] (In the older version, \concept{object (or model) coordinates}).
+            In most applications, we tend to specify or use
+            an object with a convenient size, orientation, and location in its own frame,
+            called the \concept{model~frame}.
+          \item[Object (or World) Coordinates] (In the older version,
+            \concept{world (or application) coordinates}).
+            A scene may comprise many objects.
+            The application program generally applies a sequence of transformations to each object
+            to size, orient, and position it within a frame that is appropriate for that particular
+            application.
+            The application frame is called the \concept{world frame},
+            and the values are in \concept{world coordinates}.
+            If we do not model with predefined objects, or apply any transformations before
+            we specify our geometry, model and world/object coordinates are the same.
+          \item[Eye (or Camera) Coordinates] Virtually all graphics systems use a frame
+            whose origin is the center of the camera's lens, and whose axes are aligned
+            with the sides of the camera.
+            This frame is called the \concept{camera (or eye) frame}.
+            There are $4 \times 4$ matrices that represent the transformation from the
+            model coordinates to world coordinates, and from world coordinates to eye coordinates.
+            These transformations are normally concatenated together into the
+            \concept{model-view transformation}, which is specified by the model-view matrix.
+          \item[Clip Coordinates] Once objects are in eye coordinates, WebGL must check whether
+            they lie within the view volume.
+            If an object does not, it is clipped from the scene prior to rasterisation.
+            WebGL can carry out this process most efficiently if it fist carries out a projection
+            transformation that brings all potentially visible objects into a cube centered
+            at the origin in \concept{clip coordinates}.
+          \item[Normalised Device Coordinates] At this stage, vertices are still represented
+            in homogeneous coordinates.
+            The division by the $w$ component, called \concept{perspective~division},
+            yields 3D representations in \concept{normalised device coordinates}.
+          \item[Window (or Screen) Coordinates] Takes a position in normalised device coordinates,
+            and, taking into account the viewport, creates a 3D representation in
+            \concept{window coordinates}.
+            Window coordinates are measured in units of pixels on the display,
+            but retain depth information.
+            If we remove the depth coordinate, we are working with 2D \concept{screen coordinates}.
+        \end{descriptenum}
+      \end{sidenote}
+
+      The application programmer usually works with two frames: the \concept{model frame}
+      and the \concept{view frame}.
+      By concatenating the transformation that takes the model frame to the object frame
+      with the transformation that takes the object frame to the eye frame,
+      we form the model-view matrix that positions objects relative to the eye frame.
+
+      In WebGL, we can set a model-view matrix by sending an array of 16~elements to the
+      vertex shader.
+
 \end{document}
