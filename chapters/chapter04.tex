@@ -351,4 +351,79 @@
       In WebGL, we can set a model-view matrix by sending an array of 16~elements to the
       vertex shader.
 
+    \section{Modelling a Coloured Cube}
+      \begin{sidenote}{Order of Vertices}
+        We have to be careful about the order in which we specify our vertices
+        when we are defining a three-dimensional polygon.
+
+        We call a face \concept{outward~facing} if the vertices are traversed in a counterclockwise
+        order when the face is viewed from the outside.
+        This method is also known as the \concept{right-hand~rule}, because if you orient
+        the fingers of your right hand in the direction the vertices are traversed,
+        the thumb points outward.
+      \end{sidenote}
+
+    \section{Affine Transformations}
+      \begin{definition}{Transformation}
+        A \concept{transformation} is a function that takes a point (or vector)
+        and maps it into another point (or vector).
+      \end{definition}
+
+      If we use homogeneous coordinate representations, we can represent both vectors and points
+      as four-dimensional column matrices, and we can define the transformation with a single
+      function:
+      \begin{align*}
+        \mathbf{q} &= f(\mathbf{p})\\
+        \mathbf{v} &= f(\mathbf{u})
+      \end{align*}
+
+      When we work with homogeneous coordinates, any affine transformation can be represented
+      by a $4 \times 4$~matrix that can be applied to a point or vector by pre-multiplication.
+      \begin{align*}
+        \mathbf{q} &= T\mathbf{p}
+      \end{align*}
+
+      All affine transformations preserve lines.
+
+    \section{Translation, Rotation, and Scaling}
+      \begin{definition}{Translation}
+        An operation that displaces points by a fixed distance in a given direction.
+
+        To specify a translation, we need only specify a displacement vector $d$,
+        because the transformed points are given by
+        \begin{align*}
+          p' = p + d
+        \end{align*}
+        for all points $p$ on the object.
+      \end{definition}
+
+      \begin{definition}{Rotation}
+        An operation that rotates points by a fixed angle about a point or line.
+
+        The positive direction of rotation is counter-clockwise.
+      \end{definition}
+
+      Rotation and translation are known as \concept{rigid-body~transformations}.
+      No combination of rotations and translations can alter the shape or volume of an object:
+      they can alter only the object's location and orientation.
+
+      \begin{definition}{Scaling}
+        An affine non-rigid-body transformation by which we can make an object bigger or smaller.
+
+        Scaling transformations have a \concept{fixed point}: a point that is unaffected by the
+        transformation.
+        To specify a scaling, we can specify the fixed point, a direction in which we wish to scale,
+        and a scale factor ($\alpha$).
+        If $\alpha > 1$, the object gets longer in the specified direction.
+        If $0 \leq \alpha < 1$, the object gets shorter in that direction.
+        Negative values of $\alpha$ give us \concept{reflection} about the fixed point
+        in the scaling direction.
+        \begin{descriptimize}
+          \item[Uniform Scaling] The scaling factor in all directions is identical.
+            The shape of the scaled object is preserved.
+          \item[Non-uniform Scaling] The scaling factor or each direction need not be identical.
+            The shape of the scaled object is distorted.
+        \end{descriptimize}
+      \end{definition}
+
 \end{document}
