@@ -4,4 +4,284 @@
 \begin{document}
   \setcounter{chapter}{3}
   \chapter{Geometric Objects and Transformations}
+    \section{Linear Algebra Notes}
+      \subsection{Points, Vectors, and Scalars}
+        \begin{description}
+          \item[Point] Represented graphically by a single dot.
+            A position or location specified by three values placed in parentheses $(x, y, z)$.
+            The point $(0, 0, 0)$ represents the point where the three axes intersect
+            with the value 0, and is referred to as the \concept{origin}.
+            We generally use lowercase letters $p$, $q$ and $r$ to refer to points.
+          \item[Vector] Represented graphically by an arrow.
+            A direction with a magnitude.
+            Also normally written in parentheses, but \emph{does not} specify a position.
+            A vector does not have a position.
+            We generally use lowercase letters $u$, $v$ and $w$ to refer to vectors.
+
+            Do not confuse a vector with a \concept{line~segment}.
+            A line~segment has a begin and endpoint (unlike a vector)
+            and does not point in one of two possible directions
+            (whereas a vector does).
+          \item[Scalar] A value or magnitude.
+            Has neither position nor direction.
+            We generally use lowercase letters of the Greek alphabet $\alpha$, $\beta$ and $\gamma$
+            to represent arbitrary scalars, but sometimes lowercase letters of the alphabet.
+        \end{description}
+
+        \begin{sidenote}{Expressing Points and Vectors in Homogeneous Coordinates}
+          We can distinguish between points and vectors by expressing them in four dimensions:
+          adding a fourth coordinate.
+          For a point, the fourth coordinate is 1, and for a vector it is 0.
+        \end{sidenote}
+
+      \subsection{Adding and Subtracting Vectors and Points}
+        We can add two vectors together, or subtract two vectors from one another.
+        We can add a vector to a point (or subtract, which is just adding in the opposite direction).
+        We cannot add two points together, but we can subtract one point from another.
+
+        \begin{description}
+          \item[Sum of Two Vectors] Produces a \emph{vector}.
+            Add the corresponding coordinates.
+          \item[Difference Between Two Vectors] Produces a \emph{vector}.
+            Subtract the corresponding coordinates.
+          \item[Sum of a Point and a Vector] Produces a \emph{point}.
+            Add the corresponding coordinates.
+          \item[Difference Between Two Points] Produces a \emph{vector}.
+            Subtract the corresponding coordinates.
+        \end{description}
+
+      \subsection{Multiplying and Dividing a Vector by a Scalar}
+        The product of a vector and a scalar is a \emph{vector}.
+        Multiply each of the coordinates by the scalar.
+        This increases the magnitude of a vector without changing its direction.
+        Similarly, we can divide a vector by a scalar.
+
+      \subsection{Magnitude of a Vector}
+        The magnitude of a vector is a \emph{scalar}.
+        It is the square root of the sum of the squares of its coordinates.
+        Written $\lvert v \rvert$.
+
+        If $v$ is the vector $(v_x, v_y, v_z)$, then 
+        \begin{align*}
+          \lvert v \rvert = \sqrt{v_x^2 + v_y^2 + v_z^2}
+        \end{align*}
+
+        \begin{example}
+          If $v = (3, 0, 4)$, then
+          \begin{align*}
+            \lvert v \rvert = \sqrt{v_x^2 + v_y^2 + v_z^2}
+                            = \sqrt{3^2 + 0^2 + 4^2}
+                            = \sqrt{9 + 0 + 16} = \sqrt{25} = 5
+          \end{align*}
+        \end{example}
+
+        The magnitude of a vector represents its size, without specifying its direction.
+
+      \subsection{Normalising a Vector}
+        A \concept{normalised vector} is a vector with a magnitude of 1.
+        To normalise a vector, we divide it by its magnitude.
+        \begin{align*}
+          \mathbf{n} = \frac{v}{\lvert v \rvert}
+        \end{align*}
+
+      \subsection{Dot Product of Two Vectors}
+        The \concept{dot product} (also called the \concept{inner product}) of two vectors
+        is a \emph{scalar}.
+        It is the sum of the products of the two vectors.
+        Written $u \cdot v$.
+
+        If $u$ and $v$ are vectors, and $u$ is defined as $(u_x, u_y, u_z)$ and $v$ as $(v_x, v_y, v_z)$,
+        then
+        \begin{align*}
+          u \cdot v = (u_x \cdot v_x) + (u_y \cdot v_y) + (u_z \cdot v_z)
+        \end{align*}
+
+        \begin{sidenote}{Angle Between Two Vectors}
+          The angle $\theta$ between two vectors can be calculated using:
+          \begin{align*}
+            \cos(\theta) = \frac{u \cdot v}{\lvert u \rvert \lvert v \rvert}
+          \end{align*}
+        \end{sidenote}
+
+      \pagebreak
+
+      \subsection{Cross Product of Two Vectors}
+        The cross product of two vectors is a \emph{vector}.
+        Each coordinate is calculated as the difference between the products of the
+        other two vectors.
+        Written $u \times v$.
+
+        If $u$ and $v$ are vectors, and $u$ is defined as $(u_x, u_y, u_z)$ and $v$ as $(v_x, v_y, v_z)$,
+        then
+        \begin{align*}
+          u \times v &= \bigl((u_y \cdot v_z - u_z \cdot v_y), - (u_x \cdot v_z - u_z \cdot v_x), (u_x \cdot v_y - u_y \cdot v_x)\bigr)\\
+                     &= \bigl((u_y \cdot v_z - u_z \cdot v_y), (u_z \cdot v_x - u_x \cdot v_z), (u_x \cdot v_y - u_y \cdot v_x)\bigr)
+        \end{align*}
+
+        Remembering this exact formula is tricky.
+        One way to do it is to write them down in columns, and then ignore the column
+        for the specific coordinate.
+        With that, every even column should be negated.
+
+        \begin{example}
+          If $u = (1, 2, 3)$ and $v = (-1, 0, 1)$, then
+          \begin{align*}
+            u \times v &= \bigl((u_y \cdot v_z - u_z \cdot v_y), - (u_x \cdot v_z - u_z \cdot v_x),
+              (u_x \cdot v_y - u_y \cdot v_x)\bigr)\\
+                       &= \bigl((2 \cdot 1 - 3 \cdot 0), - (1 \cdot 1 - (3)(-1)), (2 \cdot 1 - 3 \cdot 0)\bigr)\\
+                       &= \bigl(2, - (4), 2\bigr)\\
+                       &= (2, -4, 2)
+          \end{align*}
+        \end{example}
+
+        The cross product is useful for calculating a vector normal (at right angles)
+        to two vectors.
+        You can see that $u \times v = n$ is at right angles to $u$ and $v$ by calculating
+        the dot product of $n$~and~$u$ and $n$~and~$v$.
+        If $\cos(\theta) = 0$, then $\theta = 90$ degrees.
+
+      \subsection{Lines}
+        In 2D, the equation of a line is
+        \begin{center}
+          $y = mx + c$\\
+          $ax + by + c = 0$
+        \end{center}
+
+        In 3D, to specify the equation of a line we can use a set of Cartesian equations:
+        \begin{align*}
+          \frac{x - q_1}{d_1} = \frac{y - q_2}{d_2} = \frac{z - q_3}{d_3}
+        \end{align*}
+        where $q_1$, $q_2$, $q_3$, $d_1$, $d_2$, and $d_3$ are scalars,
+        and $x$, $y$ and $z$ are the coordinates of any point on the line.
+
+        An alternative way of specifying lines in three dimensions is using
+        \concept{parametric~equations}.
+        Suppose we have a point $q$ on the line, and a vector $d$ pointing in the direction
+        of the line.
+        Then the following parametric equation specifies the coordinates of any point $p$
+        on the line:
+        \begin{align*}
+          p = q + \gamma d
+        \end{align*}
+        where $\gamma$ is a scalar value.
+
+        This is related to the Cartesian equations:
+        \begin{align*}
+          (x, y, z) = (q_1, q_2, q_3) + \gamma (d_1, d_2, d_3)
+        \end{align*}
+        If we separate the coordinates into different equations, and express those equations
+        in terms of $\gamma$, we get the Cartesian equations.
+
+        If one of the components of the direction vector is zero, the Cartesian equations
+        turn out to be the equation of a line in 2 dimensions.
+
+        We can also specify a line by means of a parametric equation if we have two points
+        $q$ and $r$ on the line:
+        \begin{align*}
+          p = q + \gamma (r - q)
+        \end{align*}
+        Here, $r - q$ determines the direction vector.
+        For values of $\gamma$ between 0 and 1, we have all the points on the line~segment
+        between $r$ and $q$.
+
+        Sometimes, the parametric equation of a line is rearranged in the form
+        \begin{align*}
+          p = \gamma r + (1 - \gamma)q
+        \end{align*}
+
+      \subsection{Planes}
+        A \concept{plane} (in three dimensions) can be specified by means of an equation
+        of the form
+        \begin{align*}
+          ax + by + cz + d = 0
+        \end{align*}
+        where $a$, $b$, $c$, and $d$ are scalars, and $x$, $y$ and $z$ are the coordinates
+        of any point in the plane.
+        (As it turns out, $a$, $b$, and $c$ are the components of a vector normal -- perpendicular -- to the plane).
+
+        The equation $x + 2y + 3z - 4 = 0$ is the equation of a plane with the vector $(1, 2, 3)$
+        perpendicular to it.
+
+        \begin{sidenote}{Determining the Equation of a Plane}
+          $ $\vspace{-1em}
+          \begin{enumerate}
+            \item Given a point $q$ on the plane, and a vector $n$ normal to the plane,
+              the equation
+              \begin{align*}
+                n_1x + n_2y + n_3z + d = 0
+              \end{align*}
+              will define the plane.
+              To get the scalar for $d$, substitute the coordinates of point $q$ and solve.
+            \item Given a point $q$ on the plane, and two vectors $u$ and $v$ in the plane,
+              the cross product $u \times v$ will give a normal to the plane.
+              Then use the method above.
+            \item Given three non-collinear points $q$, $r$ and $s$ in the plane,
+              use two pairs of these points to determine two vectors in the plane
+              by subtracting the points from one another.
+              Then use the methods above to find a normal to the plane and then determine
+              the equation of the plane.
+            \item Given a line in the plane and a point $r$ in the plane.
+              The line must be specified in some way: a set of Cartesian equations
+              or a parametric equation.
+              Then two vectors in the plane will be the direction vector $d = (d_1, d_2, d_3)$
+              and the vector $q - r$.
+              Now we have two vectors and a point on the plane, and can follow the previous methods
+              to determine the equation of the plane.
+          \end{enumerate}
+        \end{sidenote}
+
+        Planes can also be specified by means of parametric equations:
+        \begin{enumerate}
+          \item Given a point $q$ and two (linearly independent) vectors $u$ and $v$ in the plane:
+            the equation
+            \begin{align*}
+              p = q + \alpha u + \beta v
+            \end{align*}
+            will specify all points $p$ on the plane.
+          \item Given three non-collinear points $q$, $r$ and $s$, $q - r$ and $q - s$
+            will give two linearly independent vectors in the plane.
+            The equation
+            \begin{align*}
+              p = q + \alpha (q - r) + \beta (q - s)
+            \end{align*}
+            will then specify all points $p$ on the plane.
+            For values of $\alpha$ and $\beta$ between 0 and 1, this equation gives all points
+            in the triangle formed by $q$, $r$ and $s$.
+        \end{enumerate}
+
+      \subsection{Matrices}
+        A two-dimensional \concept{matrix} is a table of values with a fixed number of rows
+        and columns.
+        The values are generally placed in a single pair of extended square brackets.
+
+        \begin{definition}{Transpose of a Matrix}
+          The \concept{transpose} of a matrix is another matrix with all its row and column values
+          swapped.
+          If $A$ is an $m \times n$ matrix, then the transpose of $A$, written $A^T$,
+          is the $n \times m$ matrix with the entries swapped.
+        \end{definition}
+
+        \begin{definition}{Matrix Addition and Subtraction}
+          Matrix addition is only defined for two matrices that have the same number of rows
+          and columns, and their sum is another matrix,
+          with the same number of rows and columns.
+        \end{definition}
+
+        The product of two matrices is used for transformations.
+        If we want to translate, scale, or rotate an object, we multiply each of its points
+        by the applicable transformation matrix.
+
+        \begin{definition}{Determinant of a Matrix}
+          The \concept{determinant} of a matrix is a scalar, and can only be calculated for
+          square matrices.
+          \begin{align*}
+            \lvert A \rvert &= \sum \alpha_{ij} C_{ij}\\
+            C_{ij} &= (-1)^{i + j} M_{ij}
+          \end{align*}
+          where $M_{ij}$ is the minor of matrix $A$ -- the matrix formed by eliminating
+          row~$i$ and column~$j$ from $A$.
+        \end{definition}
+
+        If the determinant of a matrix is 0, the vectors inside the matrix are linearly dependent.
+
 \end{document}
