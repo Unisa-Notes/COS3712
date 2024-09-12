@@ -426,4 +426,142 @@
         \end{descriptimize}
       \end{definition}
 
+    \section{Transformations in Homogeneous Coordinates}
+      Within a frame, each affine transformation is represented by a $4 \times 4$ matrix of the form
+      \begin{align*}
+        A = \begin{bmatrix}
+          \alpha_{11} & \alpha_{12} & \alpha_{13} & \alpha_{14} \\
+          \alpha_{21} & \alpha_{22} & \alpha_{23} & \alpha_{24} \\
+          \alpha_{31} & \alpha_{32} & \alpha_{33} & \alpha_{34} \\
+          0 & 0 & 0 & 1
+        \end{bmatrix}
+      \end{align*}
+      The final row of the matrix does not depend on a particular transformation,
+      but rather forces the fourth component of the transformation to retain the value 1.
+
+      \subsection{Translation}
+        Translation displaces points to new positions defined by a displacement vector.
+
+        \begin{theorem}{Translation Matrix}
+          $\mathbf{p}' = \mathbf{Tp}$
+          \begin{align*}
+            \mathbf{T}(\alpha_x, \alpha_y, \alpha_z) = \begin{bmatrix}
+              1 & 0 & 0 & \alpha_x \\
+              0 & 1 & 0 & \alpha_y \\
+              0 & 0 & 1 & \alpha_z \\
+              0 & 0 & 0 & 1
+            \end{bmatrix}
+          \end{align*}
+        \end{theorem}
+
+        \begin{theorem}{Inverse Translation Matrix}
+          \begin{align*}
+            \mathbf{T}^{-1}(\alpha_x, \alpha_y, \alpha_z) = \mathbf{T}(-\alpha_x, -\alpha_y, -\alpha_z)
+              = \begin{bmatrix}
+                1 & 0 & 0 & -\alpha_x \\
+                0 & 1 & 0 & -\alpha_y \\
+                0 & 0 & 1 & -\alpha_z \\
+                0 & 0 & 0 & 1
+              \end{bmatrix}
+          \end{align*}
+        \end{theorem}
+
+      \subsection{Scaling}
+        For both scaling and rotation, there is a fixed point that is unchanged by the
+        transformation.
+        A scaling matrix with a fixed point at the origin allows for independent scaling
+        along the coordinate axes.
+
+        \begin{theorem}{Scaling Matrix}
+          $\mathbf{p}' = \mathbf{Sp}$.
+
+          If $\beta$ is the scaling factor for the different coordinates, then:
+          \begin{align*}
+            \mathbf{S} = \mathbf{S}(\beta_x, \beta_y, \beta_z)
+            = \begin{bmatrix}
+              \beta_x & 0 & 0 & 0 \\
+              0 & \beta_y & 0 & 0 \\
+              0 & 0 & \beta_z & 0 \\
+              0 & 0 & 0 & 1
+            \end{bmatrix}
+          \end{align*}
+        \end{theorem}
+
+        \begin{theorem}{Inverse Scaling Matrix}
+          We obtain the inverse of a scaling matrix by applying the reciprocals of the scale factors:
+          \begin{align*}
+            \mathbf{S}^{-1}(\beta_x, \beta_y, \beta_z)
+            = \mathbf{S}\left(\frac{1}{\beta_x}, \frac{1}{\beta_y}, \frac{1}{\beta_z}\right)
+          \end{align*}
+        \end{theorem}
+
+      \subsection{Rotation}
+        Matrix multiplication is not commutative.
+        Rotation about the $x$-axis by an angle~$\theta$ followed by rotation about the $y$-axis
+        by an angle~$\theta$ does not lead to the same result as we would obtain if we reverse
+        the operations.
+
+        \begin{theorem}{Rotation Matrices}
+          \begin{align*}
+            \mathbf{R}_z = \mathbf{R}_z(\theta) &= \begin{bmatrix}
+              \cos\theta & -\sin\theta & 0 & 0 \\
+              \sin\theta & \cos\theta & 0 & 0 \\
+              0 & 0 & 1 & 0 \\
+              0 & 0 & 0 & 1
+            \end{bmatrix}\\
+            \mathbf{R}_x = \mathbf{R}_x(\theta) &= \begin{bmatrix}
+              1 & 0 & 0 & 0 \\
+              0 & \cos\theta & -\sin\theta & 0 \\
+              0 & \sin\theta & \cos\theta & 0 \\
+              0 & 0 & 0 & 1
+            \end{bmatrix}\\
+            \mathbf{R}_y = \mathbf{R}_y(\theta) &= \begin{bmatrix}
+              \cos\theta & 0 & \sin\theta & 0\\
+              0 & 1 & 0 & 0\\
+              -\sin\theta & 0 & \cos\theta & 0\\
+              0 & 0 & 0 & 1
+            \end{bmatrix}
+          \end{align*}
+        \end{theorem}
+
+        \pagebreak
+
+        \begin{theorem}{Inverse Rotation Matrix}
+          A rotation by $\theta$ can always be undone by a subsequent rotation by $-\theta$.
+          Which means,
+          \begin{align*}
+            \mathbf{R}^{-1}(\theta) = \mathbf{R}(-\theta)
+          \end{align*}
+
+          Because all cosine terms are on the diagonal, and all sine terms are off it,
+          we can use the trig identities
+          \begin{align*}
+            \cos(-\theta) &= \cos\theta\\
+            \sin(-\theta) &= -\sin\theta
+          \end{align*}
+          to find
+          \begin{align*}
+            \mathbf{R}^{-1}(\theta) = \mathbf{R}^{T}(\theta)
+          \end{align*}
+        \end{theorem}
+
+        \begin{sidenote}{Product of Rotations}
+          We can construct any desired rotation matrix, with a fixed point at the origin,
+          as a product of individual rotations about the three axes:
+          \begin{align*}
+            \mathbf{R} = \mathbf{R}_z\mathbf{R}_y\mathbf{R}_x
+          \end{align*}
+
+          NOTE: Order matters, it's z, y, x
+        \end{sidenote}
+
+        Using the fact that the transpose of a product is the product of the transposes
+        in the reverse order, for any rotation matrix
+        \begin{align*}
+          \mathbf{R}^{-1} = \mathbf{R}^T
+        \end{align*}
+
+        A matrix whose inverse is equal to its transpose is called an \concept{orthogonal matrix}.
+        Normalised orthogonal matrices correspond to rotations about the origin.
+
 \end{document}
