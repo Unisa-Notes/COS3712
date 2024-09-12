@@ -4,4 +4,88 @@
 \begin{document}
   \setcounter{chapter}{4}
   \chapter{Viewing}
+    \section{Classical and Computer Viewing}
+      Projectors meet at the \concept{centre~of~projection~(COP)}.
+      The COP corresponds to the centre of the lens in the camera or in the eye,
+      and in a computer graphics system, it is the origin of the \concept{camera~frame}
+      for perspective views.
+      The projection surface is a plane, and the projectors are straight lines.
+
+      Both classical and computer viewing allow the viewer to be an infinite distance
+      from the objects.
+      As we move the COP to infinity, the projectors become parallel, and the COP can be
+      replaced by a \concept{direction~of~projection~(DOP)}.
+      Also, as the COP moves to infinity, we can leave the projection plane fixed
+      and the size of the image remains about the same, even though the COP is infinitely
+      far from the objects.
+      Views with a finite COP are called \concept{perspective~views};
+      views with a COP at infinity are called \concept{parallel~views}.
+      For parallel views, the origin of the camera frame usually lies in the projection plane.
+
+      The class of projections produced by parallel and perspective viewing is known as
+      \concept{planar~geometric~projections}, because the projection surface is a plane,
+      and the projections are lines.
+      Both perspective and parallel projections preserve lines;
+      they do not, in general, preserve angles.
+
+    \section{Classical Viewing}
+      In classical viewing, there is the underlying notion of a \concept{principal~face}.
+
+      \subsection{Parallel Projections}
+        \begin{definition}{Orthographic Projections}
+          In all orthographic (or orthogonal) views, the projectors are perpendicular
+          to the projection plane.
+          In a \concept{multiview orthographic projection}, we make multiple projections,
+          in each case with the projection plane parallel to one of the principal faces
+          of the object.
+
+          The importance of this type of view is that it preserves both distances and angles
+          in faces parallel to the view plane,
+          and because there is no distortion of either distance or shape in images of these faces,
+          multiview orthographic projections are well suited for working drawings.
+        \end{definition}
+
+        \begin{definition}{Axonometric Projections}
+          If we want to see more faces of our box-like object in a single view,
+          we must remove one of our restrictions.
+
+          In \concept{axonometric views}, the projectors are still orthogonal to the
+          projection plane, but the projection plane can have any orientation with respect
+          to the object.
+
+          If the projection plane is placed symmetrically with respect to the three
+          principal faces, we have an \concept{isometric} view.
+          If it is placed symmetrically with respect to two, it is a \concept{dimetric} view.
+          The general case is a \concept{trimetric} view.
+
+          In an isometric view, a line segment's length in the image space is shorter
+          than its length measured in the object space.
+          This \concept{foreshortening} of distances is the same in the three principal directions,
+          so we can still make distance measurements.
+          In the dimetric view, however, there are two different foreshortening ratios;
+          in the trimetric view, there are three.
+        \end{definition}
+
+        \begin{definition}{Oblique Projections}
+          The \concept{oblique} views are the most general parallel views.
+          We obtain an oblique projection by allowing the projectors to make
+          an arbitrary angle with the projection plane.
+          Consequently, angles in planes parallel to the projection plane are preserved.
+          These views are the most difficult to construct by hand.
+        \end{definition}
+
+      \subsection{Perspective Projections}
+        All perspective views are characterised by \concept{diminution} of size.
+        When objects are moved farther from the viewer, their images become smaller.
+        This size change gives perspective views their natural appearance;
+        however, because the amount by which a line is foreshortened depends on how far
+        the line is from the viewer, we cannot make measurements from a perspective view.
+
+        The classical perspective views are known as \concept{one-}, \concept{two-} or
+        \concept{three-point perspectives}.
+        The differences among the cases are based on how many of the three principal directions
+        are parallel to the projection plane.
+        The one-, two-, and three- prefixed refer to the number of \concept{vanishing~points}:
+        points at which lines of perspective meet.
+
 \end{document}
