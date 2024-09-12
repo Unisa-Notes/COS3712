@@ -564,4 +564,74 @@
         A matrix whose inverse is equal to its transpose is called an \concept{orthogonal matrix}.
         Normalised orthogonal matrices correspond to rotations about the origin.
 
+    \section{Concatenation of Transformations}
+      We can combine affine transformations by multiplying together, or \concept{concatenating},
+      sequences of the basic transformations.
+
+      Note that the order of the steps means which is applied first.
+      If we want to apply $\mathbf{A}$, then $\mathbf{B}$, then $\mathbf{C}$,
+      that would mean:
+      \begin{enumerate}[nosep]
+        \item $p$
+        \item $\mathbf{A}(p)$
+        \item $\mathbf{B}(\mathbf{A}(p))$
+        \item $\mathbf{C}(\mathbf{B}(\mathbf{A}(p)))$
+        \item $\mathbf{CBA}p$
+      \end{enumerate}
+
+      \subsection{Rotation About a Fixed Point}
+        \begin{example}
+          Consider a cube with its centre at $\mathbf{p}_f$ and its sides aligned with the axes.
+          We want to rotate the cube without changing $x$ and $y$ values,
+          but this time about its centre $\mathbf{p}_f$, which becomes the fixed point
+          of the transformation.
+          If $\mathbf{p}_f$ were the origin, we would know how to solve the problem:
+          simply use $\mathbf{R}_z(\theta)$.
+
+          So:
+          \begin{enumerate}[nosep]
+            \item Move the cube to the origin: $\mathbf{T}(-\mathbf{p}_f)$.
+            \item Apply $\mathbf{R}_z(\theta)$.
+            \item Move the object back, so that its centre is again at $\mathbf{p}_f$:
+              $\mathbf{T}(\mathbf{p}_f)$.
+          \end{enumerate}
+          \begin{align*}
+            \mathbf{M} = \mathbf{T}(\mathbf{p}_f)\mathbf{R}_z(\theta)\mathbf{T}(-\mathbf{p}_f)
+          \end{align*}
+        \end{example}
+
+      \subsection{The Instance Transformation}
+        Instead of defining all the objects separately, with their own attributes,
+        we can specify each of the object types once at a convenient size, in a convenient
+        place, and with a convenient orientation.
+        Each occurrence of an object in the scene is an \concept{instance} of that object's
+        prototype, and we can obtain the desired size, orientation, and location
+        by applying an affine transformation -- the \concept{instance~transformation} --
+        to the prototype.
+
+        Objects are usually defined in their own frames, with the origin at the centre of mass,
+        and the sides aligned with the model frame axis.
+
+        First, we scale the object to the desired size, then we orient it, and then translate it.
+        \begin{align*}
+          \mathbf{M} = \mathbf{TRS}
+        \end{align*}
+
+      \subsection{Rotation About an Arbitrary Axis}
+        To rotate an object by an angle~$\theta$ about an arbitrary axis, we carry out at most
+        two rotations to align the axis of rotation with the axis -- say, the $z$-axis --
+        then rotate $\theta$ about that axis, and then undo the two rotations that
+        did the aligning.
+
+        \begin{enumerate}[nosep]
+          \item Rotate about $x$-axis: $\mathbf{R}_x$.
+          \item Rotate about $y$-axis: $\mathbf{R}_y$.
+          \item Do the required rotation: $\mathbf{R}_z(\theta)$.
+          \item Undo $y$ rotation: $\mathbf{R}^{-1}_y$.
+          \item Undo $x$ rotation: $\mathbf{R}^{-1}_x$.
+        \end{enumerate}
+        \begin{align*}
+          \mathbf{R} = \mathbf{R}^{-1}_x \mathbf{R}^{-1}_y \mathbf{R}_z(\theta) \mathbf{R}_y \mathbf{R}_x
+        \end{align*}
+
 \end{document}
