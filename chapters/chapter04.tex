@@ -1,0 +1,664 @@
+\providecommand{\main}{..}
+\documentclass[../COS3712_Notes.tex]{subfiles}
+
+\begin{document}
+  \setcounter{chapter}{3}
+  \chapter{Geometric Objects and Transformations}
+    \section{Linear Algebra Notes}
+      \subsection{Points, Vectors, and Scalars}
+        \begin{description}
+          \item[Point] Represented graphically by a single dot.
+            A position or location specified by three values placed in parentheses $(x, y, z)$.
+            The point $(0, 0, 0)$ represents the point where the three axes intersect
+            with the value 0, and is referred to as the \concept{origin}.
+            We generally use lowercase letters $p$, $q$ and $r$ to refer to points.
+          \item[Vector] Represented graphically by an arrow.
+            A direction with a magnitude.
+            Also normally written in parentheses, but \emph{does not} specify a position.
+            A vector does not have a position.
+            We generally use lowercase letters $u$, $v$ and $w$ to refer to vectors.
+
+            Do not confuse a vector with a \concept{line~segment}.
+            A line~segment has a begin and endpoint (unlike a vector)
+            and does not point in one of two possible directions
+            (whereas a vector does).
+          \item[Scalar] A value or magnitude.
+            Has neither position nor direction.
+            We generally use lowercase letters of the Greek alphabet $\alpha$, $\beta$ and $\gamma$
+            to represent arbitrary scalars, but sometimes lowercase letters of the alphabet.
+        \end{description}
+
+        \begin{sidenote}{Expressing Points and Vectors in Homogeneous Coordinates}
+          We can distinguish between points and vectors by expressing them in four dimensions:
+          adding a fourth coordinate.
+          For a point, the fourth coordinate is 1, and for a vector it is 0.
+        \end{sidenote}
+
+      \subsection{Adding and Subtracting Vectors and Points}
+        We can add two vectors together, or subtract two vectors from one another.
+        We can add a vector to a point (or subtract, which is just adding in the opposite direction).
+        We cannot add two points together, but we can subtract one point from another.
+
+        \begin{description}
+          \item[Sum of Two Vectors] Produces a \emph{vector}.
+            Add the corresponding coordinates.
+          \item[Difference Between Two Vectors] Produces a \emph{vector}.
+            Subtract the corresponding coordinates.
+          \item[Sum of a Point and a Vector] Produces a \emph{point}.
+            Add the corresponding coordinates.
+          \item[Difference Between Two Points] Produces a \emph{vector}.
+            Subtract the corresponding coordinates.
+        \end{description}
+
+      \subsection{Multiplying and Dividing a Vector by a Scalar}
+        The product of a vector and a scalar is a \emph{vector}.
+        Multiply each of the coordinates by the scalar.
+        This increases the magnitude of a vector without changing its direction.
+        Similarly, we can divide a vector by a scalar.
+
+      \subsection{Magnitude of a Vector}
+        The magnitude of a vector is a \emph{scalar}.
+        It is the square root of the sum of the squares of its coordinates.
+        Written $\lvert v \rvert$.
+
+        If $v$ is the vector $(v_x, v_y, v_z)$, then 
+        \begin{align*}
+          \lvert v \rvert = \sqrt{v_x^2 + v_y^2 + v_z^2}
+        \end{align*}
+
+        \begin{example}
+          If $v = (3, 0, 4)$, then
+          \begin{align*}
+            \lvert v \rvert = \sqrt{v_x^2 + v_y^2 + v_z^2}
+                            = \sqrt{3^2 + 0^2 + 4^2}
+                            = \sqrt{9 + 0 + 16} = \sqrt{25} = 5
+          \end{align*}
+        \end{example}
+
+        The magnitude of a vector represents its size, without specifying its direction.
+
+      \subsection{Normalising a Vector}
+        A \concept{normalised vector} is a vector with a magnitude of 1.
+        To normalise a vector, we divide it by its magnitude.
+        \begin{align*}
+          \mathbf{n} = \frac{v}{\lvert v \rvert}
+        \end{align*}
+
+      \subsection{Dot Product of Two Vectors}
+        The \concept{dot product} (also called the \concept{inner product}) of two vectors
+        is a \emph{scalar}.
+        It is the sum of the products of the two vectors.
+        Written $u \cdot v$.
+
+        If $u$ and $v$ are vectors, and $u$ is defined as $(u_x, u_y, u_z)$ and $v$ as $(v_x, v_y, v_z)$,
+        then
+        \begin{align*}
+          u \cdot v = (u_x \cdot v_x) + (u_y \cdot v_y) + (u_z \cdot v_z)
+        \end{align*}
+
+        \begin{sidenote}{Angle Between Two Vectors}
+          The angle $\theta$ between two vectors can be calculated using:
+          \begin{align*}
+            \cos(\theta) = \frac{u \cdot v}{\lvert u \rvert \lvert v \rvert}
+          \end{align*}
+        \end{sidenote}
+
+      \pagebreak
+
+      \subsection{Cross Product of Two Vectors}
+        The cross product of two vectors is a \emph{vector}.
+        Each coordinate is calculated as the difference between the products of the
+        other two vectors.
+        Written $u \times v$.
+
+        If $u$ and $v$ are vectors, and $u$ is defined as $(u_x, u_y, u_z)$ and $v$ as $(v_x, v_y, v_z)$,
+        then
+        \begin{align*}
+          u \times v &= \bigl((u_y \cdot v_z - u_z \cdot v_y), - (u_x \cdot v_z - u_z \cdot v_x), (u_x \cdot v_y - u_y \cdot v_x)\bigr)\\
+                     &= \bigl((u_y \cdot v_z - u_z \cdot v_y), (u_z \cdot v_x - u_x \cdot v_z), (u_x \cdot v_y - u_y \cdot v_x)\bigr)
+        \end{align*}
+
+        Remembering this exact formula is tricky.
+        One way to do it is to write them down in columns, and then ignore the column
+        for the specific coordinate.
+        With that, every even column should be negated.
+
+        \begin{example}
+          If $u = (1, 2, 3)$ and $v = (-1, 0, 1)$, then
+          \begin{align*}
+            u \times v &= \bigl((u_y \cdot v_z - u_z \cdot v_y), - (u_x \cdot v_z - u_z \cdot v_x),
+              (u_x \cdot v_y - u_y \cdot v_x)\bigr)\\
+                       &= \bigl((2 \cdot 1 - 3 \cdot 0), - (1 \cdot 1 - (3)(-1)), (2 \cdot 1 - 3 \cdot 0)\bigr)\\
+                       &= \bigl(2, - (4), 2\bigr)\\
+                       &= (2, -4, 2)
+          \end{align*}
+        \end{example}
+
+        The cross product is useful for calculating a vector normal (at right angles)
+        to two vectors.
+        You can see that $u \times v = n$ is at right angles to $u$ and $v$ by calculating
+        the dot product of $n$~and~$u$ and $n$~and~$v$.
+        If $\cos(\theta) = 0$, then $\theta = 90$ degrees.
+
+      \subsection{Lines}
+        In 2D, the equation of a line is
+        \begin{center}
+          $y = mx + c$\\
+          $ax + by + c = 0$
+        \end{center}
+
+        In 3D, to specify the equation of a line we can use a set of Cartesian equations:
+        \begin{align*}
+          \frac{x - q_1}{d_1} = \frac{y - q_2}{d_2} = \frac{z - q_3}{d_3}
+        \end{align*}
+        where $q_1$, $q_2$, $q_3$, $d_1$, $d_2$, and $d_3$ are scalars,
+        and $x$, $y$ and $z$ are the coordinates of any point on the line.
+
+        An alternative way of specifying lines in three dimensions is using
+        \concept{parametric~equations}.
+        Suppose we have a point $q$ on the line, and a vector $d$ pointing in the direction
+        of the line.
+        Then the following parametric equation specifies the coordinates of any point $p$
+        on the line:
+        \begin{align*}
+          p = q + \gamma d
+        \end{align*}
+        where $\gamma$ is a scalar value.
+
+        This is related to the Cartesian equations:
+        \begin{align*}
+          (x, y, z) = (q_1, q_2, q_3) + \gamma (d_1, d_2, d_3)
+        \end{align*}
+        If we separate the coordinates into different equations, and express those equations
+        in terms of $\gamma$, we get the Cartesian equations.
+
+        If one of the components of the direction vector is zero, the Cartesian equations
+        turn out to be the equation of a line in 2 dimensions.
+
+        We can also specify a line by means of a parametric equation if we have two points
+        $q$ and $r$ on the line:
+        \begin{align*}
+          p = q + \gamma (r - q)
+        \end{align*}
+        Here, $r - q$ determines the direction vector.
+        For values of $\gamma$ between 0 and 1, we have all the points on the line~segment
+        between $r$ and $q$.
+
+        Sometimes, the parametric equation of a line is rearranged in the form
+        \begin{align*}
+          p = \gamma r + (1 - \gamma)q
+        \end{align*}
+
+      \subsection{Planes}
+        A \concept{plane} (in three dimensions) can be specified by means of an equation
+        of the form
+        \begin{align*}
+          ax + by + cz + d = 0
+        \end{align*}
+        where $a$, $b$, $c$, and $d$ are scalars, and $x$, $y$ and $z$ are the coordinates
+        of any point in the plane.
+        (As it turns out, $a$, $b$, and $c$ are the components of a vector normal -- perpendicular -- to the plane).
+
+        The equation $x + 2y + 3z - 4 = 0$ is the equation of a plane with the vector $(1, 2, 3)$
+        perpendicular to it.
+
+        \begin{sidenote}{Determining the Equation of a Plane}
+          $ $\vspace{-1em}
+          \begin{enumerate}
+            \item Given a point $q$ on the plane, and a vector $n$ normal to the plane,
+              the equation
+              \begin{align*}
+                n_1x + n_2y + n_3z + d = 0
+              \end{align*}
+              will define the plane.
+              To get the scalar for $d$, substitute the coordinates of point $q$ and solve.
+            \item Given a point $q$ on the plane, and two vectors $u$ and $v$ in the plane,
+              the cross product $u \times v$ will give a normal to the plane.
+              Then use the method above.
+            \item Given three non-collinear points $q$, $r$ and $s$ in the plane,
+              use two pairs of these points to determine two vectors in the plane
+              by subtracting the points from one another.
+              Then use the methods above to find a normal to the plane and then determine
+              the equation of the plane.
+            \item Given a line in the plane and a point $r$ in the plane.
+              The line must be specified in some way: a set of Cartesian equations
+              or a parametric equation.
+              Then two vectors in the plane will be the direction vector $d = (d_1, d_2, d_3)$
+              and the vector $q - r$.
+              Now we have two vectors and a point on the plane, and can follow the previous methods
+              to determine the equation of the plane.
+          \end{enumerate}
+        \end{sidenote}
+
+        Planes can also be specified by means of parametric equations:
+        \begin{enumerate}
+          \item Given a point $q$ and two (linearly independent) vectors $u$ and $v$ in the plane:
+            the equation
+            \begin{align*}
+              p = q + \alpha u + \beta v
+            \end{align*}
+            will specify all points $p$ on the plane.
+          \item Given three non-collinear points $q$, $r$ and $s$, $q - r$ and $q - s$
+            will give two linearly independent vectors in the plane.
+            The equation
+            \begin{align*}
+              p = q + \alpha (q - r) + \beta (q - s)
+            \end{align*}
+            will then specify all points $p$ on the plane.
+            For values of $\alpha$ and $\beta$ between 0 and 1, this equation gives all points
+            in the triangle formed by $q$, $r$ and $s$.
+        \end{enumerate}
+
+      \subsection{Matrices}
+        A two-dimensional \concept{matrix} is a table of values with a fixed number of rows
+        and columns.
+        The values are generally placed in a single pair of extended square brackets.
+
+        \begin{definition}{Transpose of a Matrix}
+          The \concept{transpose} of a matrix is another matrix with all its row and column values
+          swapped.
+          If $A$ is an $m \times n$ matrix, then the transpose of $A$, written $A^T$,
+          is the $n \times m$ matrix with the entries swapped.
+        \end{definition}
+
+        \begin{definition}{Matrix Addition and Subtraction}
+          Matrix addition is only defined for two matrices that have the same number of rows
+          and columns, and their sum is another matrix,
+          with the same number of rows and columns.
+        \end{definition}
+
+        The product of two matrices is used for transformations.
+        If we want to translate, scale, or rotate an object, we multiply each of its points
+        by the applicable transformation matrix.
+
+        \begin{definition}{Determinant of a Matrix}
+          The \concept{determinant} of a matrix is a scalar, and can only be calculated for
+          square matrices.
+          \begin{align*}
+            \lvert A \rvert &= \sum \alpha_{ij} C_{ij}\\
+            C_{ij} &= (-1)^{i + j} M_{ij}
+          \end{align*}
+          where $M_{ij}$ is the minor of matrix $A$ -- the matrix formed by eliminating
+          row~$i$ and column~$j$ from $A$.
+        \end{definition}
+
+        If the determinant of a matrix is 0, the vectors inside the matrix are linearly dependent.
+
+    \section{Three Dimensional Primitives}
+      \begin{sidenote}{Features of 3D Objects That Work with Existing Graphics}
+        $ $\vspace{-1em}
+        \begin{itemize}
+          \item The objects are described by their surfaces and can be thought of as being hollow.
+          \item The objects can be specified through a set of vertices in three dimensions.
+          \item The objects are either composed of, or can be approximated by, flat, convex polygons.
+        \end{itemize}
+      \end{sidenote}
+
+    \pagebreak
+
+    \section{Frames in WebGL}
+      \begin{sidenote}{Order of Frames in the Pipeline}
+        Note that the names have changed between the versions, for the first two.
+
+        \begin{descriptenum}
+          \item[Model Coordinates] (In the older version, \concept{object (or model) coordinates}).
+            In most applications, we tend to specify or use
+            an object with a convenient size, orientation, and location in its own frame,
+            called the \concept{model~frame}.
+          \item[Object (or World) Coordinates] (In the older version,
+            \concept{world (or application) coordinates}).
+            A scene may comprise many objects.
+            The application program generally applies a sequence of transformations to each object
+            to size, orient, and position it within a frame that is appropriate for that particular
+            application.
+            The application frame is called the \concept{world frame},
+            and the values are in \concept{world coordinates}.
+            If we do not model with predefined objects, or apply any transformations before
+            we specify our geometry, model and world/object coordinates are the same.
+          \item[Eye (or Camera) Coordinates] Virtually all graphics systems use a frame
+            whose origin is the center of the camera's lens, and whose axes are aligned
+            with the sides of the camera.
+            This frame is called the \concept{camera (or eye) frame}.
+            There are $4 \times 4$ matrices that represent the transformation from the
+            model coordinates to world coordinates, and from world coordinates to eye coordinates.
+            These transformations are normally concatenated together into the
+            \concept{model-view transformation}, which is specified by the model-view matrix.
+          \item[Clip Coordinates] Once objects are in eye coordinates, WebGL must check whether
+            they lie within the view volume.
+            If an object does not, it is clipped from the scene prior to rasterisation.
+            WebGL can carry out this process most efficiently if it fist carries out a projection
+            transformation that brings all potentially visible objects into a cube centered
+            at the origin in \concept{clip coordinates}.
+          \item[Normalised Device Coordinates] At this stage, vertices are still represented
+            in homogeneous coordinates.
+            The division by the $w$ component, called \concept{perspective~division},
+            yields 3D representations in \concept{normalised device coordinates}.
+          \item[Window (or Screen) Coordinates] Takes a position in normalised device coordinates,
+            and, taking into account the viewport, creates a 3D representation in
+            \concept{window coordinates}.
+            Window coordinates are measured in units of pixels on the display,
+            but retain depth information.
+            If we remove the depth coordinate, we are working with 2D \concept{screen coordinates}.
+        \end{descriptenum}
+      \end{sidenote}
+
+      The application programmer usually works with two frames: the \concept{model frame}
+      and the \concept{view frame}.
+      By concatenating the transformation that takes the model frame to the object frame
+      with the transformation that takes the object frame to the eye frame,
+      we form the model-view matrix that positions objects relative to the eye frame.
+
+      In WebGL, we can set a model-view matrix by sending an array of 16~elements to the
+      vertex shader.
+
+    \section{Modelling a Coloured Cube}
+      \begin{sidenote}{Order of Vertices}
+        We have to be careful about the order in which we specify our vertices
+        when we are defining a three-dimensional polygon.
+
+        We call a face \concept{outward~facing} if the vertices are traversed in a counterclockwise
+        order when the face is viewed from the outside.
+        This method is also known as the \concept{right-hand~rule}, because if you orient
+        the fingers of your right hand in the direction the vertices are traversed,
+        the thumb points outward.
+      \end{sidenote}
+
+    \section{Affine Transformations}
+      \begin{definition}{Transformation}
+        A \concept{transformation} is a function that takes a point (or vector)
+        and maps it into another point (or vector).
+      \end{definition}
+
+      If we use homogeneous coordinate representations, we can represent both vectors and points
+      as four-dimensional column matrices, and we can define the transformation with a single
+      function:
+      \begin{align*}
+        \mathbf{q} &= f(\mathbf{p})\\
+        \mathbf{v} &= f(\mathbf{u})
+      \end{align*}
+
+      When we work with homogeneous coordinates, any affine transformation can be represented
+      by a $4 \times 4$~matrix that can be applied to a point or vector by pre-multiplication.
+      \begin{align*}
+        \mathbf{q} &= T\mathbf{p}
+      \end{align*}
+
+      All affine transformations preserve lines.
+
+    \section{Translation, Rotation, and Scaling}
+      \begin{definition}{Translation}
+        An operation that displaces points by a fixed distance in a given direction.
+
+        To specify a translation, we need only specify a displacement vector $d$,
+        because the transformed points are given by
+        \begin{align*}
+          p' = p + d
+        \end{align*}
+        for all points $p$ on the object.
+      \end{definition}
+
+      \begin{definition}{Rotation}
+        An operation that rotates points by a fixed angle about a point or line.
+
+        The positive direction of rotation is counter-clockwise.
+      \end{definition}
+
+      Rotation and translation are known as \concept{rigid-body~transformations}.
+      No combination of rotations and translations can alter the shape or volume of an object:
+      they can alter only the object's location and orientation.
+
+      \begin{definition}{Scaling}
+        An affine non-rigid-body transformation by which we can make an object bigger or smaller.
+
+        Scaling transformations have a \concept{fixed point}: a point that is unaffected by the
+        transformation.
+        To specify a scaling, we can specify the fixed point, a direction in which we wish to scale,
+        and a scale factor ($\alpha$).
+        If $\alpha > 1$, the object gets longer in the specified direction.
+        If $0 \leq \alpha < 1$, the object gets shorter in that direction.
+        Negative values of $\alpha$ give us \concept{reflection} about the fixed point
+        in the scaling direction.
+        \begin{descriptimize}
+          \item[Uniform Scaling] The scaling factor in all directions is identical.
+            The shape of the scaled object is preserved.
+          \item[Non-uniform Scaling] The scaling factor or each direction need not be identical.
+            The shape of the scaled object is distorted.
+        \end{descriptimize}
+      \end{definition}
+
+    \section{Transformations in Homogeneous Coordinates}
+      Within a frame, each affine transformation is represented by a $4 \times 4$ matrix of the form
+      \begin{align*}
+        A = \begin{bmatrix}
+          \alpha_{11} & \alpha_{12} & \alpha_{13} & \alpha_{14} \\
+          \alpha_{21} & \alpha_{22} & \alpha_{23} & \alpha_{24} \\
+          \alpha_{31} & \alpha_{32} & \alpha_{33} & \alpha_{34} \\
+          0 & 0 & 0 & 1
+        \end{bmatrix}
+      \end{align*}
+      The final row of the matrix does not depend on a particular transformation,
+      but rather forces the fourth component of the transformation to retain the value 1.
+
+      \subsection{Translation}
+        Translation displaces points to new positions defined by a displacement vector.
+
+        \begin{theorem}{Translation Matrix}
+          $\mathbf{p}' = \mathbf{Tp}$
+          \begin{align*}
+            \mathbf{T}(\alpha_x, \alpha_y, \alpha_z) = \begin{bmatrix}
+              1 & 0 & 0 & \alpha_x \\
+              0 & 1 & 0 & \alpha_y \\
+              0 & 0 & 1 & \alpha_z \\
+              0 & 0 & 0 & 1
+            \end{bmatrix}
+          \end{align*}
+        \end{theorem}
+
+        \begin{theorem}{Inverse Translation Matrix}
+          \begin{align*}
+            \mathbf{T}^{-1}(\alpha_x, \alpha_y, \alpha_z) = \mathbf{T}(-\alpha_x, -\alpha_y, -\alpha_z)
+              = \begin{bmatrix}
+                1 & 0 & 0 & -\alpha_x \\
+                0 & 1 & 0 & -\alpha_y \\
+                0 & 0 & 1 & -\alpha_z \\
+                0 & 0 & 0 & 1
+              \end{bmatrix}
+          \end{align*}
+        \end{theorem}
+
+      \subsection{Scaling}
+        For both scaling and rotation, there is a fixed point that is unchanged by the
+        transformation.
+        A scaling matrix with a fixed point at the origin allows for independent scaling
+        along the coordinate axes.
+
+        \begin{theorem}{Scaling Matrix}
+          $\mathbf{p}' = \mathbf{Sp}$.
+
+          If $\beta$ is the scaling factor for the different coordinates, then:
+          \begin{align*}
+            \mathbf{S} = \mathbf{S}(\beta_x, \beta_y, \beta_z)
+            = \begin{bmatrix}
+              \beta_x & 0 & 0 & 0 \\
+              0 & \beta_y & 0 & 0 \\
+              0 & 0 & \beta_z & 0 \\
+              0 & 0 & 0 & 1
+            \end{bmatrix}
+          \end{align*}
+        \end{theorem}
+
+        \begin{theorem}{Inverse Scaling Matrix}
+          We obtain the inverse of a scaling matrix by applying the reciprocals of the scale factors:
+          \begin{align*}
+            \mathbf{S}^{-1}(\beta_x, \beta_y, \beta_z)
+            = \mathbf{S}\left(\frac{1}{\beta_x}, \frac{1}{\beta_y}, \frac{1}{\beta_z}\right)
+          \end{align*}
+        \end{theorem}
+
+      \subsection{Rotation}
+        Matrix multiplication is not commutative.
+        Rotation about the $x$-axis by an angle~$\theta$ followed by rotation about the $y$-axis
+        by an angle~$\theta$ does not lead to the same result as we would obtain if we reverse
+        the operations.
+
+        \begin{theorem}{Rotation Matrices}
+          \begin{align*}
+            \mathbf{R}_z = \mathbf{R}_z(\theta) &= \begin{bmatrix}
+              \cos\theta & -\sin\theta & 0 & 0 \\
+              \sin\theta & \cos\theta & 0 & 0 \\
+              0 & 0 & 1 & 0 \\
+              0 & 0 & 0 & 1
+            \end{bmatrix}\\
+            \mathbf{R}_x = \mathbf{R}_x(\theta) &= \begin{bmatrix}
+              1 & 0 & 0 & 0 \\
+              0 & \cos\theta & -\sin\theta & 0 \\
+              0 & \sin\theta & \cos\theta & 0 \\
+              0 & 0 & 0 & 1
+            \end{bmatrix}\\
+            \mathbf{R}_y = \mathbf{R}_y(\theta) &= \begin{bmatrix}
+              \cos\theta & 0 & \sin\theta & 0\\
+              0 & 1 & 0 & 0\\
+              -\sin\theta & 0 & \cos\theta & 0\\
+              0 & 0 & 0 & 1
+            \end{bmatrix}
+          \end{align*}
+        \end{theorem}
+
+        \pagebreak
+
+        \begin{theorem}{Inverse Rotation Matrix}
+          A rotation by $\theta$ can always be undone by a subsequent rotation by $-\theta$.
+          Which means,
+          \begin{align*}
+            \mathbf{R}^{-1}(\theta) = \mathbf{R}(-\theta)
+          \end{align*}
+
+          Because all cosine terms are on the diagonal, and all sine terms are off it,
+          we can use the trig identities
+          \begin{align*}
+            \cos(-\theta) &= \cos\theta\\
+            \sin(-\theta) &= -\sin\theta
+          \end{align*}
+          to find
+          \begin{align*}
+            \mathbf{R}^{-1}(\theta) = \mathbf{R}^{T}(\theta)
+          \end{align*}
+        \end{theorem}
+
+        \begin{sidenote}{Product of Rotations}
+          We can construct any desired rotation matrix, with a fixed point at the origin,
+          as a product of individual rotations about the three axes:
+          \begin{align*}
+            \mathbf{R} = \mathbf{R}_z\mathbf{R}_y\mathbf{R}_x
+          \end{align*}
+
+          NOTE: Order matters, it's z, y, x
+        \end{sidenote}
+
+        Using the fact that the transpose of a product is the product of the transposes
+        in the reverse order, for any rotation matrix
+        \begin{align*}
+          \mathbf{R}^{-1} = \mathbf{R}^T
+        \end{align*}
+
+        A matrix whose inverse is equal to its transpose is called an \concept{orthogonal matrix}.
+        Normalised orthogonal matrices correspond to rotations about the origin.
+
+    \section{Concatenation of Transformations}
+      We can combine affine transformations by multiplying together, or \concept{concatenating},
+      sequences of the basic transformations.
+
+      Note that the order of the steps means which is applied first.
+      If we want to apply $\mathbf{A}$, then $\mathbf{B}$, then $\mathbf{C}$,
+      that would mean:
+      \begin{enumerate}[nosep]
+        \item $p$
+        \item $\mathbf{A}(p)$
+        \item $\mathbf{B}(\mathbf{A}(p))$
+        \item $\mathbf{C}(\mathbf{B}(\mathbf{A}(p)))$
+        \item $\mathbf{CBA}p$
+      \end{enumerate}
+
+      \subsection{Rotation About a Fixed Point}
+        \begin{example}
+          Consider a cube with its centre at $\mathbf{p}_f$ and its sides aligned with the axes.
+          We want to rotate the cube without changing $x$ and $y$ values,
+          but this time about its centre $\mathbf{p}_f$, which becomes the fixed point
+          of the transformation.
+          If $\mathbf{p}_f$ were the origin, we would know how to solve the problem:
+          simply use $\mathbf{R}_z(\theta)$.
+
+          So:
+          \begin{enumerate}[nosep]
+            \item Move the cube to the origin: $\mathbf{T}(-\mathbf{p}_f)$.
+            \item Apply $\mathbf{R}_z(\theta)$.
+            \item Move the object back, so that its centre is again at $\mathbf{p}_f$:
+              $\mathbf{T}(\mathbf{p}_f)$.
+          \end{enumerate}
+          \begin{align*}
+            \mathbf{M} = \mathbf{T}(\mathbf{p}_f)\mathbf{R}_z(\theta)\mathbf{T}(-\mathbf{p}_f)
+          \end{align*}
+        \end{example}
+
+      \subsection{The Instance Transformation}
+        Instead of defining all the objects separately, with their own attributes,
+        we can specify each of the object types once at a convenient size, in a convenient
+        place, and with a convenient orientation.
+        Each occurrence of an object in the scene is an \concept{instance} of that object's
+        prototype, and we can obtain the desired size, orientation, and location
+        by applying an affine transformation -- the \concept{instance~transformation} --
+        to the prototype.
+
+        Objects are usually defined in their own frames, with the origin at the centre of mass,
+        and the sides aligned with the model frame axis.
+
+        First, we scale the object to the desired size, then we orient it, and then translate it.
+        \begin{align*}
+          \mathbf{M} = \mathbf{TRS}
+        \end{align*}
+
+      \subsection{Rotation About an Arbitrary Axis}
+        To rotate an object by an angle~$\theta$ about an arbitrary axis, we carry out at most
+        two rotations to align the axis of rotation with the axis -- say, the $z$-axis --
+        then rotate $\theta$ about that axis, and then undo the two rotations that
+        did the aligning.
+
+        \begin{enumerate}[nosep]
+          \item Rotate about $x$-axis: $\mathbf{R}_x$.
+          \item Rotate about $y$-axis: $\mathbf{R}_y$.
+          \item Do the required rotation: $\mathbf{R}_z(\theta)$.
+          \item Undo $y$ rotation: $\mathbf{R}^{-1}_y$.
+          \item Undo $x$ rotation: $\mathbf{R}^{-1}_x$.
+        \end{enumerate}
+        \begin{align*}
+          \mathbf{R} = \mathbf{R}^{-1}_x \mathbf{R}^{-1}_y \mathbf{R}_z(\theta) \mathbf{R}_y \mathbf{R}_x
+        \end{align*}
+
+    \pagebreak
+
+    \section{Transformation Matrices in WebGL}
+      In a modern implementation of OpenGL, the application programmer can choose not only
+      which frames to use
+      (model-, world-, and eye-frame),
+      but also where to carry out the transformations between frames
+      (application or vertex shader).
+      Although very few state variables are predefined in WebGL, once we specify various
+      attributes and matrices, they effectively define the state of the system.
+      Thus, when a vertex is processed, how it is processed is determined by the values
+      of these state variables.
+
+      The two transformations we will use the most often are the
+      \begin{descriptimize}
+        \item[Model-View Transformation] Brings representations of geometric objects
+          from the application or object frame to the camera frame.
+        \item[Projection Transformation] Both carries out the desired projection,
+          and change the representation to clip coordinates.
+      \end{descriptimize}
+
+      \begin{definition}{Uniform Qualified Variables}
+        Parameters that remain the same for all vertices in a primitive.
+      \end{definition}
+
+  \rulechapterend
+
+\end{document}
