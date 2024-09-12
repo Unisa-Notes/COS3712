@@ -634,4 +634,31 @@
           \mathbf{R} = \mathbf{R}^{-1}_x \mathbf{R}^{-1}_y \mathbf{R}_z(\theta) \mathbf{R}_y \mathbf{R}_x
         \end{align*}
 
+    \pagebreak
+
+    \section{Transformation Matrices in WebGL}
+      In a modern implementation of OpenGL, the application programmer can choose not only
+      which frames to use
+      (model-, world-, and eye-frame),
+      but also where to carry out the transformations between frames
+      (application or vertex shader).
+      Although very few state variables are predefined in WebGL, once we specify various
+      attributes and matrices, they effectively define the state of the system.
+      Thus, when a vertex is processed, how it is processed is determined by the values
+      of these state variables.
+
+      The two transformations we will use the most often are the
+      \begin{descriptimize}
+        \item[Model-View Transformation] Brings representations of geometric objects
+          from the application or object frame to the camera frame.
+        \item[Projection Transformation] Both carries out the desired projection,
+          and change the representation to clip coordinates.
+      \end{descriptimize}
+
+      \begin{definition}{Uniform Qualified Variables}
+        Parameters that remain the same for all vertices in a primitive.
+      \end{definition}
+
+  \rulechapterend
+
 \end{document}
