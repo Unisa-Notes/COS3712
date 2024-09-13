@@ -418,4 +418,75 @@
       We apply the projection matrix after the model-view matrix, but must perform
       perspective division at the end.
 
+    \section{Perspective Projections with WebGL}
+      The projections developed earlier did not take into account the properties of the camera:
+      the focal length of its lens or the size of the film plane.
+      We did not include the effects of clipping.
+
+      With most graphics APIs, the application program specifies clipping parameters through the
+      specification of a projection.
+      The infinite pyramid becomes a finite clipping volume by adding front and back clipping
+      planes, as well as the angle of view.
+      The resulting view volume is a \concept{frustum}: a truncated pyramid.
+
+      Two APIs for specifying a perspective projection matrix are \mintinline{javascript}{frustum()}
+      and \mintinline{javascript}{perspective()}.
+
+    \section{Perspective Projection Matrices}
+      For perspective matrices, we follow a path similar to the one used for parallel projections:
+      find a transformation that allows us, by distorting the vertices of our objects,
+      to do a simple canonical projection to obtain the desired image.
+      Our first step is to decide what this canonical viewing volume should be.
+      We then introduce a new transformation, the \concept{perspective~normalisation~transformation}
+      that converts a perspective projection to an orthogonal projection.
+
+    \section{Hidden Surface Removal}
+      The graphics system must be careful about which surfaces it displays.
+      Conceptually, we seek algorithms that either remove those surfaces that should not be
+      visible to the viewer (\concept{hidden-surface removal algorithms}),
+      or find which surfaces are visible (\concept{visible-surface algorithms}).
+
+      \begin{sidenote}{Types of Hidden Surface Removal Algorithms}
+        $ $\vspace{-1em}
+        \begin{descriptimize}
+          \item[Object-Space Algorithms] Attempt to order the surfaces of the objects
+            in the scene such that rendering surfaces in a particular order provides
+            the correct image.
+
+            This class of algorithms does not work well with pipelines architectures
+            in which objects are passed down the pipeline in an arbitrary order.
+            In order to decide on a proper order in which to render the objects,
+            the graphics system must have all the objects available,
+            so it can sort them into the desired back to front order.
+          \item[Image-Space Algorithms] Work as part of the projection process
+            and seek to determine the relationship among object points on each projector.
+            The $z$-buffer algorithm is of this type,
+            and fits well with the rendering pipeline in most graphics systems,
+            because we can save partial information as each object is rendered.
+        \end{descriptimize}
+      \end{sidenote}
+
+      \begin{definition}{$Z$-Buffer Algorithm}
+        As primitives are rasterized, we keep track of the distance from the COP
+        or the projection plane to the closest point on each projector that has already
+        been rendered.
+        We update this information as successive primitives are projected and filled.
+        Ultimately, we display only the closest point on each projector.
+        The algorithm requires a \concept{depth buffer} (or \concept{$z$-buffer})
+        to store the necessary depth information as primitives are rasterized.
+        The $z$-buffer forms part of the framebuffer, and has the same spatial resolution
+        as the colour buffer.
+      \end{definition}
+
+      \begin{sidenote}{Advantages of $Z$-Buffer}
+        $ $\vspace{-1em}
+        \begin{itemize}
+          \item Its complexity is proportional to the number of fragments generated
+            by the rasterizer.
+          \item It can be implemented with a small number of additional calculations
+            over what we have to do to project and display polygons without
+            hidden-surface removal.
+        \end{itemize}
+      \end{sidenote}
+
 \end{document}
