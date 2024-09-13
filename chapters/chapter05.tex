@@ -222,4 +222,74 @@
             \mathbf{n} &= \frac{\mathbf{vpn}}{\lvert \mathbf{vpn} \rvert}
           \end{align*}
 
+    \section{Parallel Projections}
+      \concept{Projection} is a technique that takes the specification of points in
+      three dimensions and maps them to points on a two-dimensional projection surface.
+      Such a transformation is not invertible, because all points along a projector
+      map into the same points on the projection surface.
+
+      A \concept{parallel~projection} is the limit of a perspective projection in which the
+      centre of projection is infinitely far from the objects being viewed,
+      resulting in projectors that are parallel rather than converging at the centre of projection.
+
+      \subsection{Orthogonal Projections}
+        \concept{Orthogonal} or \concept{orthographic} projections are a special case
+        of parallel projections in which the projectors are perpendicular to the view plane.
+        In terms of a camera, orthogonal projections correspond to a camera with a back plane
+        parallel to the lens, which has an infinite focal length.
+
+      \subsection{Projection Normalisation}
+        \concept{Projection~normalisation} is a technique that converts all projections
+        into orthogonal projections by first distorting the objects such that the
+        orthogonal projection of the distorted objects is the same as the desired projection
+        of the original objects.
+
+        \begin{definition}{Canonical View Volume}
+          The cube defined by the planes
+          \begin{align*}
+            x &= \pm 1 & y &= \pm 1 & z &= \pm 1
+          \end{align*}
+        \end{definition}
+
+        The \concept{normalisation~matrix} should be defined such that it transforms (distorts)
+        the specified view volume to coincide directly with the \concept{canonical} (default)
+        view volume.
+        So, vertices are transformed such that vertices within the specified view volume
+        are transformed into vertices within the canonical view volume,
+        and vertices outside the specified view volume are transformed to vertices outside
+        the canonical view volume.
+
+        The concatenation of the normalisation~matrix, which carries out the distortion,
+        and the simple orthogonal projection matrix, yields a homogeneous coordinate matrix
+        that produces the desired projection.
+
+        \begin{sidenote}{Advantages of Projection Normalisation}
+          $ $\vspace{-1em}
+          \begin{itemize}
+            \item Both perspective and parallel views are supported by the same pipeline
+              by loading in the proper normalisation matrix.
+            \item The canonical view volume simplifies the clipping process,
+              because the sides are aligned with the coordinate axes.
+          \end{itemize}
+        \end{sidenote}
+
+        The normalisation process defines what most systems call the \concept{projection~matrix}.
+        The projection matrix brings objects into four-dimensional clip coordinates,
+        and the subsequent perspective division converts vertices to a representation
+        in three-dimensional normalised device coordinates.
+        Values in normalised device coordinates are later mapped to window coordinates
+        by the viewport transformation.
+
+      \subsection{Orthogonal Projection Matrices}
+        The shape of the viewing volume for an orthogonal projection is a right-parallelepiped.
+
+        \begin{sidenote}{Projection Normalisation Process for an Orthographic Projection}
+          $ $\vspace{-1em}
+          \begin{enumerate}
+            \item Move the centre of the specified view volume to the centre of the canonical
+              view volume (the origin) by doing a translation.
+            \item Scale the sides of the specified view volume to each have a length of 2.
+          \end{enumerate}
+        \end{sidenote}
+
 \end{document}
