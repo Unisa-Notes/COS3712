@@ -137,4 +137,89 @@
         \caption{Viewing Transformations}
       \end{figure}
 
+    \section{Positioning of the Camera}
+      \subsection{Positioning of the Camera Frame}
+        We can specify vertices in any units we choose, and we can define a model-view~matrix
+        as a sequence of affine transformations that repositions these vertices.
+
+        At any given time, the model-view~matrix encapsulates the relationship between the
+        camera frame and the object frame.
+
+        The model-view~transformation is the concatenation of two transformations:
+        \begin{itemize}
+          \item A \concept{modelling transformation} that takes instances of objects
+            in model coordinates and brings them into the object frame.
+            For each object in a scene, we construct a transformation matrix,
+            called the \concept{instance~transformation}, that will scale, orient, and translate
+            the object to the desired location in the scene.
+            This matrix can be derived by concatenating a series of basic transformation matrices.
+          \item A \concept{viewing transformation} that transforms object coordinates
+            to eye coordinates.
+        \end{itemize}
+
+      \subsection{Constructing the Viewing Transformation}
+        There are multiple techniques for specifying the desired position of the camera,
+        and implementing camera positioning in WebGL.
+
+        \subsubsection{First Approach: Affine Transformations}
+          The first approach is to specify the position indirectly by applying a sequence
+          of rotations and translations to the model-view~matrix.
+          This approach is a direct application of instance transformation.
+          We can think of the camera as being fixed at the origin,
+          pointing down the negative $z$-axis.
+          Thus, we transform the scene relative to the camera frame.
+          We usually want to specify the camera's position \emph{before} we position any objects
+          in the scene.
+          The order of transformations on the camera may appear to be backward from what you might
+          expect.
+
+        \subsubsection{Second Approach: View-Orientation Matrix}
+          A second approach is to describe the camera's position and orientation
+          in the world frame.
+          We construct the matrix, called the \concept{view-orientation~matrix},
+          that will take us from world coordinates to camera coordinates.
+          The precise type of image we wish to obtain is determined separately by the
+          specification of the projection matrix.
+          This second part of the viewing process is often called the
+          \concept{normalisation~transformation}.
+
+          We approach this problem as one of a change in frames.
+          We think of the camera as positioned initially at the origin, pointing in the
+          negative $z$ direction.
+
+          \begin{sidenote}{Parameters Needed for Specifying the Camera Frame}
+            $ $\vspace{-1em}
+            \begin{descriptimize}
+              \item[View Reference Point (VRP)] The desired location of the camera, or COP,
+                whose position is given in the world frame
+                (i.e. specified in world coordinates).
+              \item[View-Plane Normal (VPN)] Gives the orientation of the projection plane
+                or back of the camera.
+                Specifies the normal of the projection plane, known as $\mathbf{n}$.
+              \item[View-Up Vector (VUP)] Specifies the direction that is `up' from the
+                camera's perspective.
+                This vector is \emph{not necessarily} orthogonal to $\mathbf{n}$.
+            \end{descriptimize}
+          \end{sidenote}
+
+          We project the VUP vector onto the view plane to obtain the up-direction vector
+          $\mathbf{v}$, which is orthogonal to $\mathbf{n}$.
+          We then use the cross product $\mathbf{v} \times \mathbf{n}$ to obtain
+          a third orthogonal direction $\mathbf{u}$.
+          This new orthogonal coordinate system is referred to as the
+          \concept{viewing-coordinate system} or the \concept{$\mathbf{u}$-$\mathbf{v}$-$\mathbf{n}$ system}.
+          With the addition of the VRP, we have the desired camera frame.
+
+        \subsubsection{Third Approach: The Look-At Function}
+          Similar to the second approach: it differs only in the way we specify the VPN.
+          A camera is located at a point $\mathbf{e}$, called the \concept{eye~point},
+          specified in the world frame, equivalent to the VRP above.
+          The camera is pointed at a second point $\mathbf{a}$, called the \concept{at~point}.
+          The VPN is given by the vector formed by point subtraction between the eye~point
+          and the at~point, and normalising it.
+          \begin{align*}
+            \mathbf{vpn} &= \mathbf{a} - \mathbf{e} &
+            \mathbf{n} &= \frac{\mathbf{vpn}}{\lvert \mathbf{vpn} \rvert}
+          \end{align*}
+
 \end{document}
