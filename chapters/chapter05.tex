@@ -88,4 +88,53 @@
         The one-, two-, and three- prefixed refer to the number of \concept{vanishing~points}:
         points at which lines of perspective meet.
 
+    \section{Viewing with a Computer}
+      In computer graphics, we stress the independence of the object specifications
+      and camera parameters.
+      Hence, to create one of the classical views, the application program must use information
+      about the objects to create and place the proper camera.
+      The desired view can be achieved by applying a sequence of transformations on each object
+      in the scene.
+      Every transformation is equivalent to a change of frames.
+      The coordinate types used in the viewing process are object, camera, and clip coordinates.
+
+      Hidden-surface~removal occurs after the fragment shader.
+      Although an object might be blocked from the camera by other objects,
+      even with hidden-surface~removal enabled, the rasterizer will still generate fragments
+      for blocked objects within the clipping volume.
+
+      \begin{sidenote}{Viewing Process Operations}
+        There are two operations in the viewing process:
+        \begin{enumerate}
+          \item Position and orient the camera.
+            This operation is the job of the model-view transformation.
+            After vertices pass through this transformation, they will be represented
+            in eye or camera coordinates.
+          \item Applying the projection transformation.
+            This step applies the specified projection -- orthographic or perspective --
+            to the vertices and puts objects within the specified clipping volume
+            into the same clipping cube in clip coordinates.
+
+            One of the functions of either projection will be to allow us to specify a view volume
+            in camera coordinates, rather than having to scale our object to fit into the
+            default view volume.
+        \end{enumerate}
+      \end{sidenote}
+
+      The current transformation matrix will be the product of two matrices:
+      the \concept{model-view~matrix} and the \concept{projection~matrix}.
+      The model-view~matrix will take vertices in object coordinates and convert theme
+      to a representation in camera coordinates and thus must encapsulate the positioning
+      and orientation of the camera.
+      The projection matrix will both carry out the desired projection,
+      and convert a viewing volume specified in camera coordinates to fit inside the viewing
+      cube in clip coordinates.
+
+      \begin{figure}
+        \begin{center}
+          \includegraphics[width=0.8\textwidth]{\main/images/chapter05/viewing_transformations.png}
+        \end{center}
+        \caption{Viewing Transformations}
+      \end{figure}
+
 \end{document}
