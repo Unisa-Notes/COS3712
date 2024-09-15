@@ -489,4 +489,12 @@
         \end{itemize}
       \end{sidenote}
 
+      \subsection{Culling}
+        For a convex object, faces whose normals point away from the viewer are never visible,
+        and an be eliminated (or \concept{culled}) before the rasterizer.
+
+        The default is to cull back faces.
+        However, back face culling is guaranteed to produce a correct image only if we have
+        a single convex object.
+
 \end{document}
