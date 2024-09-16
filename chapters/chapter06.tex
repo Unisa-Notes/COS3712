@@ -99,4 +99,146 @@
             with the direction (vector) of the light.
         \end{descriptenum}
 
+    \section{The Phong Reflection Model}
+      The Phong model uses four vectors to calculate a colour for an arbitrary point $\mathbf{p}$
+      on a surface.
+      \begin{descriptimize}[nosep]
+        \item[$\mathbf{n}$] The normal at $\mathbf{p}$.
+        \item[$\mathbf{v}$] In the direction from $\mathbf{p}$ to the viewer or COP.
+        \item[$\mathbf{l}$] In the direction of a line from $\mathbf{p}$ to an arbitrary point
+          on the source for a distributed light source, or to the point light source.
+        \item[$\mathbf{r}$] The direction that a perfectly reflected ray from $\mathbf{l}$ would
+          take.
+          Determined by $\mathbf{n}$ and $\mathbf{l}$.
+      \end{descriptimize}
+      If the surface is curved, all four vectors can change as we move from point to point.
+
+      The Phong model supports three types of material-light interactions: ambient, diffuse,
+      and specular.
+      For each light source, we can have separate ambient, diffuse, and specular components
+      for each of the three primary colours.
+      Thus, we need nine coefficients to characterise these terms at any point $\mathbf{p}$.
+      We can place these coefficients in a $3 \times 3$ illumination matrix for the $i$th
+      light source:
+      \begin{align*}
+        \mathbf{L}_i = \begin{bmatrix}
+          L_{i\mathrm{ra}} & L_{i\mathrm{ga}} & L_{i\mathrm{ba}} \\
+          L_{i\mathrm{rd}} & L_{i\mathrm{gd}} & L_{i\mathrm{bd}} \\
+          L_{i\mathrm{rs}} & L_{i\mathrm{gs}} & L_{i\mathrm{bs}}
+        \end{bmatrix}
+      \end{align*}
+
+      \subsection{Ambient Reflection}
+        The intensity of ambient light $I_a$ is the same at every point on the surface.
+        Some of this light is absorbed, and some is reflected.
+        The amount reflected is given by the ambient reflection coefficient $R_a = k_a$.
+        Because only a positive fraction of the light is reflected,
+        we must have
+        \begin{align*}
+          0 \leq k_a \leq 1
+        \end{align*}
+        and thus
+        \begin{align*}
+          I_a = k_a L_a
+        \end{align*}
+        Here, $L_a$ can be any of the individual light sources,
+        or it can be a global ambient term.
+
+      \subsection{Diffuse Reflection}
+        A perfectly diffuse reflector scatters the light that it reflects equally in all directions.
+        Hence, such a surface appears the same to all viewers.
+
+        The amount of light reflected depends both on the material
+        -- because some of the incoming light is absorbed --
+        and on the position of the light source relative to the surface.
+
+        Diffuse reflections are characterised by rough surfaces.
+        Perfectly diffuse surfaces, which are sometimes called \concept{Lambertian~surfaces},
+        are so rough that there is no preferred angle of reflection,
+        and can be modelled mathematically with \concept{Lambert's Law}.
+
+        \begin{definition}{Lambert's Law}
+          We see only the vertical component of the incoming light.
+
+          The reflected light is proportional to the cosine of the angle between the normal
+          and the direction of the light source.
+          \begin{align*}
+            R_d \propto \cos\theta
+          \end{align*}
+          where $\theta$ is the angle between the normal at the point of interest $\mathbf{n}$
+          and the direction of the light source $\mathbf{l}$.
+
+          If both $\mathbf{l}$ and $\mathbf{n}$ are unit vectors,
+          then
+          \begin{align*}
+            \cos\theta = \mathbf{l} \cdot \mathbf{n}
+          \end{align*}
+          If we add in a reflection coefficient $k_d$, representing the fraction of incoming
+          diffuse light that is reflected,
+          we have the diffuse reflection term:
+          \begin{align*}
+            I_d = k_d (\mathbf{l} \cdot \mathbf{n}) L_d
+          \end{align*}
+        \end{definition}
+
+      \subsection{Specular Reflection}
+        If we employ only ambient and diffuse reflections, our images will be shaded and will
+        appear 3D, but all surfaces will look dull.
+        Specular reflection adds a highlight that we see reflected from shiny objects.
+
+        Whereas a diffuse surface is rough, a specular surface is smooth.
+        As the surface gets smoother, the reflected light is concentrated in a smaller range
+        of angles centred about the angle of a perfect reflector.
+        The pattern by which light is reflected is not symmetric,
+        but depends on the wavelength of the incident light,
+        and it changes with the reflection angle.
+
+        The amount of light that the viewer sees depends on the angle $\phi$ between
+        $\mathbf{r}$, the direction of a perfect reflector,
+        and $\mathbf{v}$, the direction of the viewer.
+
+        The Phong model uses the equation
+        \begin{align*}
+          I_s = k_s L_s \cos^{\alpha} \phi.
+        \end{align*}
+        The coefficient $k_s$ is the fraction of the incoming specular light that is reflected.
+        The exponent $\alpha$ is a \concept{shininess} coefficient.
+        As $\alpha$ increases, the reflected light is concentrated in a narrower region.
+
+        The computational advantage of the Phong model is that if we have normalised
+        $\mathbf{r}$ and $\mathbf{v}$ to unit length,
+        we can again use the dot product, and the specular term becomes
+        \begin{align*}
+          I_s = k_s L_s (\mathbf{r}, \mathbf{v})^{\alpha}
+        \end{align*}
+
+        \begin{theorem}{Phong Model (with Distance Term)}
+          \begin{align*}
+            I = \frac{1}{a + bd + cd^2}\bigl(k_d L_d \max(\mathbf{l} \cdot \mathbf{n}, 0)
+            + k_s L_s \max\left((\mathbf{r} \cdot \mathbf{v})^{\alpha}, 0\right) \bigr)
+            + k_a L_a
+          \end{align*}
+          That is, distance times diffuse surfaces plus specular surfaces, plus ambient.
+
+          This formula is computed for each light source and for each primary.
+        \end{theorem}
+
+      \subsection{The Modified Phong Model}
+        If we use the Phong model with specular reflections in our rendering,
+        the dot product $\mathbf{r} \cdot \mathbf{v}$ should be recalculated at every point
+        on the surface.
+
+        We can obtain an interesting approximation by using the unit vector halfway
+        between the viewer vector and the light source vector:
+        \begin{align*}
+          \mathbf{h} = \frac{\mathbf{l} + \mathbf{h}}{\lvert \mathbf{l} + \mathbf{v} \rvert}
+        \end{align*}
+
+        If we replace $\mathbf{r} \cdot \mathbf{v}$ with $\mathbf{n} \cdot \mathbf{h}$,
+        we avoid calculation of $\mathbf{r}$.
+        We can use the \concept{halfway vector} $\mathbf{h}$ together with the angle $\psi$
+        -- the angle between $\mathbf{n}$ and $\mathbf{h}$ to simplify specular calculations.
+        When we use the halfway vector in the calculation of the specular term,
+        we are using the \concept{Blinn-Phong (or modified Phong) lighting model}.
+
 \end{document}
