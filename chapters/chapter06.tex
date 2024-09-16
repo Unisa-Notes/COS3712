@@ -4,4 +4,50 @@
 \begin{document}
   \setcounter{chapter}{5}
   \chapter{Lighting and Shading}
+    \concept{Local lighting modules}, as opposed to \concept{\emph{global} lighting modules},
+    allow us to compute the shade to assign to a point on a surface,
+    independent of any other surfaces in the scene.
+    The calculations depend only on the material properties assigned to the surface,
+    the local geometry of the surface, and the locations and properties of the light sources.
+
+    We have choices as to where to apply a given lighting model:
+    in the application, in the vertex shader, or in the fragment shader.
+
+    \section{Light and Matter}
+      From a physical perspective, a surface can either emit light by self-emission,
+      as a light-bulb does,
+      or reflect light from other surfaces that illuminate it.
+      When we look at a point on an object, the colour we see is determined by multiple
+      interactions among light sources and reflective surfaces.
+      These interactions can be viewed as a recursive process.
+      The algorithm for calculating this (the \concept{rendering equation}) cannot be solved
+      analytically in the general case.
+      Instead, we focus on a simpler rendering model, based on the \concept{Phong reflection model},
+      that provides a compromise between physical correctness and efficient calculation.
+
+      Rather than looking at a global energy balance, we follow rays of light
+      from light-emitting (or self-luminous) surfaces that we call \concept{light~sources}.
+      We then model what happens to these rays as they interact with reflecting surfaces
+      in the scene.
+
+      \begin{sidenote}{Groups of Interactions Between Light and Materials}
+        $ $\vspace{-1em}
+        \begin{descriptimize}[nosep]
+          \item[Specular~surfaces] appear shiny because most of the light
+            that is reflected or \concept{scattered} is in a narrow range of angles
+            close to the angle of reflection.
+            Mirrors are \concept{perfectly specular surfaces}: the light from an incoming
+            light ray may be partially absorbed, but all reflected light from a given angle
+            emerges at a single angle.
+          \item[Diffuse~surfaces] are characterised by reflected light being scattered
+            in all directions.
+            Walls painted with matte or flat paint would be an example.
+            \concept{Perfectly diffuse surfaces} scatter light equally in all directions,
+            and thus a flat, perfectly diffuse surface appears the same to all viewers.
+          \item[Translucent surfaces] allow some light to penetrate the surface
+            and to emerge from another location on the object.
+            This process of \concept{refraction} characterises glass and water.
+        \end{descriptimize}
+      \end{sidenote}
+
 \end{document}
