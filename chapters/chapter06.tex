@@ -241,4 +241,55 @@
         When we use the halfway vector in the calculation of the specular term,
         we are using the \concept{Blinn-Phong (or modified Phong) lighting model}.
 
+    \section{Computation of Vectors}
+      \subsection{Normal Vectors}
+        For smooth surfaces, the vector normal to the surface exists at every point.
+        Its calculation depends on how the surface is represented mathematically.
+
+        A plane can be described by the equation
+        \begin{align*}
+          ax + by + cz + d = 0
+        \end{align*}
+        This equation can also be written in terms of the normal to the plane, $\mathbf{n}$,
+        and a point $\mathbf{p}_0$, known to be on the plane:
+        \begin{align*}
+          \mathbf{n} \cdot (\mathbf{p} - \mathbf{p}_0) = 0
+        \end{align*}
+        where $\mathbf{p}$ is any point $(x, y, z)$ on the plane.
+        The vector $\mathbf{n}$ is given by
+        \begin{align*}
+          \mathbf{n} = \begin{bmatrix}
+            a \\
+            b \\
+            c
+          \end{bmatrix}
+        \end{align*}
+
+        If we are given three non-collinear points $p_0, p_1, p_2$, we can calculate the normal
+        of the plane in which they lie as
+        \begin{align*}
+          \mathbf{n} = (p_2 - p_0) \times (p_1 - p_0)
+        \end{align*}
+        The order in which we multiply the vectors determines the direction of the resulting
+        vector, and affects the lighting calculations, because it can change the surface
+        from outward pointing to inward pointing.
+
+        At every point $(x, y, z)$ on the surface of a sphere centred at the origin,
+        we have that $\mathbf{n} = (x, y, z)$
+
+      \subsection{Angle of Reflection}
+        Once we have calculated the normal at a point, we can use this normal and the direction
+        of the light source to compute the direction of a perfect reflection.
+        An ideal mirror is characterised by the following statement:
+        \emph{`The angle of incidence is equal to the angle of reflection'}.
+        The \concept{angle of incidence} is the angle between the normal and the light source.
+        The \concept{angle of reflection} is the angle between the normal and the direction
+        in which the light is reflected.
+
+        To solve $\mathbf{r}$, we first normalise both $\mathbf{l}$ and $\mathbf{n}$.
+        Then
+        \begin{align*}
+          \mathbf{r} = 2 (\mathbf{l} \cdot \mathbf{n}) \mathbf{n} - \mathbf{l}
+        \end{align*}
+
 \end{document}
