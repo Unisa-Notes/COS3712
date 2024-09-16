@@ -292,4 +292,48 @@
           \mathbf{r} = 2 (\mathbf{l} \cdot \mathbf{n}) \mathbf{n} - \mathbf{l}
         \end{align*}
 
+    \pagebreak
+
+    \section{Polygonal Shading}
+      A polygonal mesh comprises many flat polygons, each of which has a well-defined normal.
+      There are three ways to shade these polygons:
+      \begin{descriptimize}
+        \item[Flat Shading (Constant Shading)] If the three vectors are constant,
+          then the shading calculation needs to be carried out only once for each polygon,
+          and each point on the polygon is assigned the same shade.
+
+          For a flat polygon, $\mathbf{n}$ is constant.
+          If the viewer is distant, then $\mathbf{v}$ is constant.
+          If the light source is distant, then $\mathbf{l}$ is constant.
+
+          Flat shading will show differences in shading among the polygons in our mesh.
+          If we see an increasing sequence of intensities, we perceive the increases in brightness
+          as overshooting on one side of an intensity step, and undershooting on the other.
+          We see stripes, known as \concept{Mach~bands}, along the edges.
+        \item[Goraud Shading (Smooth Shading)] The lighting calculation is made at each vertex
+          using the material properties, and the vectors $\mathbf{n}$, $\mathbf{v}$
+          and $\mathbf{l}$ are computed for each vertex.
+          Thus, each vertex will have its own colour that the rasterizer can use to interpolate
+          a shade for each fragment.
+
+          If the light source is distant, and either the viewer is distant or there are no
+          specular reflections, then smooth (or interpolative) shading shades a polygon
+          in a constant colour.
+
+          Because multiple polygons meet at interior vertices of the mesh,
+          each with its own normal, the normal at the vertex is discontinuous.
+          The vertex can be defined to achieve smoother shading through interpolation.
+
+          In \concept{Goraud shading}, we define the normal at a vertex to be the normalised
+          average of the normals of the polygons that share the vertex.
+        \item[Phong Shading] Instead of interpolating vertex intensities, we interpolate
+          normals across each polygon.
+          We can compute vertex normals by interpolating over the normals of the polygons
+          that share the vertex.
+          Next, we can use interpolation to interpolate the normals over the polygon.
+          We make an independent lighting calculation for each fragment.
+          We implement Phong shading in the fragment shader, and it is also known as
+          \concept{per-fragment shading}.
+      \end{descriptimize}
+
 \end{document}
