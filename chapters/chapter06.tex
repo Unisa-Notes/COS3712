@@ -50,4 +50,53 @@
         \end{descriptimize}
       \end{sidenote}
 
+    \section{Light Sources}
+      Light can leave a surface through two fundamental processes: self-emission and reflection.
+      A general light source can be characterised by a six-variable \concept{illumination function}
+      $I(x, y, z, \theta, \phi, \lambda)$.
+      We need two angles to specify a direction, and we are assuming that each frequency
+      can be considered independently.
+
+      \subsection{Colour Sources}
+        Light sources emit different amounts of light at different frequencies,
+        and their directional properties can vary with frequency as well.
+        For most applications, we can model light sources as having three components
+        -- red, green, and blue --
+        and we can use each of the three colour sources to obtain the corresponding
+        colour components that a human observer sees.
+        We describe a source through a three-component intensity or \concept{luminance} function:
+        \begin{align*}
+          \mathbf{I} = \begin{bmatrix}
+            I_r \\
+            I_g \\
+            I_b
+          \end{bmatrix}
+        \end{align*}
+        each of whose components is the intensity of the independent red, green, and blue components.
+
+        There are four basic types of sources:
+        \begin{descriptenum}
+          \item[Ambient Light] Lights that are designed and positioned to provide uniform
+            illumination throughout the room.
+            Ambient illumination is characterised by an intensity, $\mathbf{I}_a$,
+            that is identical at every point in the scene.
+            Although every point in our scene receives the same illumination from $\mathbf{I}_a$,
+            each surface can reflect this light differently.
+          \item[Point Sources] An ideal \concept{point source} emits light equally
+            in all directions.
+            The intensity of illumination received from a point source is proportional to the
+            inverse square root of the distance between the source and surface.
+          \item[Spotlights] Characterised by a narrow range of angles through which light is
+            emitted.
+            We can construct a simple spotlight from a point source by limiting the angles
+            at which light from the source can be seen.
+            More realistic spotlights are characterised by the distribution of light
+            within the cone, usually with most of the light concentrated in the
+            centre of the cone.
+          \item[Distant Light] If the light source is far from the surface, the vector
+            does not change much as we move from point to point.
+            All rays are parallel, and we replace the location (point) of the light source
+            with the direction (vector) of the light.
+        \end{descriptenum}
+
 \end{document}
