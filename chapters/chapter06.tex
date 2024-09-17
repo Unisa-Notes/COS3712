@@ -480,4 +480,54 @@
             while other data can be transferred as vertex attributes.
         \end{enumerate}
 
+    \section{Shading of the Sphere Model}
+      As we increase the number of subdivisions so that the interiors of the spheres
+      appear smooth, we can still see edges of polygons around the outside of the sphere image.
+      This type of outline is called a \concept{silhouette edge}.
+      Because two adjacent triangles will have different normals, and thus are shaded with
+      different colours, even if we create many triangles, we still can see the lack of smoothness.
+
+      The smoother the shading, the fewer polygons we need to model a sphere (or any curved surface).
+      To obtain the smoothest possible display we can get with relatively few triangles,
+      use the actual normals of the sphere for each vertex in the approximation.
+
+    \section{Per-Fragment Lighting}
+      We can do the lighting calculation on a per-fragment basis, rather than on a per-vertex basis.
+      When we did all our lighting calculations in the vertex shader, visually there was no
+      advantage over doing the same calculation in the application and then sending the computed
+      vertex colours to the vertex shader.
+      Whether we did the lighting in the vertex shader or in the application, the rasterizer
+      interpolated the same vertex colours to obtain fragment colours.
+
+      With a fragment shader, we can do an independent lighting calculation for each fragment.
+      The fragment shader needs to get the interpolated values of the normal vector,
+      light source position, and eye position from the rasterizer.
+      The vertex shader can compute these values and output them to the rasterizer.
+      In addition, the vertex shader must output the vertex position in clip coordinates.
+      The fragment shader can then apply the lighting model to each fragment
+      using the light and material parameters passed in from the application as uniform variables
+      and the interpolated vectors from the rasterizer.
+
+      We normalise vectors in the fragment shader rather than in the vertex shaders.
+      If we were to normalise a variable in the vertex shader, that would not guarantee
+      that the interpolated normals produced by the rasterizer would have the unit magnitude
+      needed for the lighting computation.
+
+      Because we can only render triangles in WebGL, unless we use Goraud shading with the true
+      normals, the normals will be the same whether we use per-vertex or per-fragment shading.
+      If the light source and viewer are relatively far from the surface,
+      so that each triangle makes only a small contribution to the rendered image,
+      we might not notice a significant difference between the two.
+      However, we may notice differences in efficiency that depend on both the application
+      and the particular GPU.
+
+      By doing the lighting calculations on a per-fragment instead of per-vertex basis,
+      we can obtain highly smooth and realistic looking shadings.
+
+      \begin{sidenote}[float]{Non-Photorealistic Shading}
+        Programmable shaders make it possible not only to incorporate more realistic lighting
+        models in real time, but also to create non-photorealistic effects.
+        Two examples are the use of only a few colours, and emphasising the edges in objects.
+      \end{sidenote}
+
 \end{document}
