@@ -1,0 +1,576 @@
+\providecommand{\main}{..}
+\documentclass[../COS3712_Notes.tex]{subfiles}
+
+\begin{document}
+  \setcounter{chapter}{5}
+  \chapter{Lighting and Shading}
+    \concept{Local lighting modules}, as opposed to \concept{\emph{global} lighting modules},
+    allow us to compute the shade to assign to a point on a surface,
+    independent of any other surfaces in the scene.
+    The calculations depend only on the material properties assigned to the surface,
+    the local geometry of the surface, and the locations and properties of the light sources.
+
+    We have choices as to where to apply a given lighting model:
+    in the application, in the vertex shader, or in the fragment shader.
+
+    \section{Light and Matter}
+      From a physical perspective, a surface can either emit light by self-emission,
+      as a light-bulb does,
+      or reflect light from other surfaces that illuminate it.
+      When we look at a point on an object, the colour we see is determined by multiple
+      interactions among light sources and reflective surfaces.
+      These interactions can be viewed as a recursive process.
+      The algorithm for calculating this (the \concept{rendering equation}) cannot be solved
+      analytically in the general case.
+      Instead, we focus on a simpler rendering model, based on the \concept{Phong reflection model},
+      that provides a compromise between physical correctness and efficient calculation.
+
+      Rather than looking at a global energy balance, we follow rays of light
+      from light-emitting (or self-luminous) surfaces that we call \concept{light~sources}.
+      We then model what happens to these rays as they interact with reflecting surfaces
+      in the scene.
+
+      \begin{sidenote}{Groups of Interactions Between Light and Materials}
+        $ $\vspace{-1em}
+        \begin{descriptimize}[nosep]
+          \item[Specular~surfaces] appear shiny because most of the light
+            that is reflected or \concept{scattered} is in a narrow range of angles
+            close to the angle of reflection.
+            Mirrors are \concept{perfectly specular surfaces}: the light from an incoming
+            light ray may be partially absorbed, but all reflected light from a given angle
+            emerges at a single angle.
+          \item[Diffuse~surfaces] are characterised by reflected light being scattered
+            in all directions.
+            Walls painted with matte or flat paint would be an example.
+            \concept{Perfectly diffuse surfaces} scatter light equally in all directions,
+            and thus a flat, perfectly diffuse surface appears the same to all viewers.
+          \item[Translucent surfaces] allow some light to penetrate the surface
+            and to emerge from another location on the object.
+            This process of \concept{refraction} characterises glass and water.
+        \end{descriptimize}
+      \end{sidenote}
+
+    \section{Light Sources}
+      Light can leave a surface through two fundamental processes: self-emission and reflection.
+      A general light source can be characterised by a six-variable \concept{illumination function}
+      $I(x, y, z, \theta, \phi, \lambda)$.
+      We need two angles to specify a direction, and we are assuming that each frequency
+      can be considered independently.
+
+      \subsection{Colour Sources}
+        Light sources emit different amounts of light at different frequencies,
+        and their directional properties can vary with frequency as well.
+        For most applications, we can model light sources as having three components
+        -- red, green, and blue --
+        and we can use each of the three colour sources to obtain the corresponding
+        colour components that a human observer sees.
+        We describe a source through a three-component intensity or \concept{luminance} function:
+        \begin{align*}
+          \mathbf{I} = \begin{bmatrix}
+            I_r \\
+            I_g \\
+            I_b
+          \end{bmatrix}
+        \end{align*}
+        each of whose components is the intensity of the independent red, green, and blue components.
+
+        There are four basic types of sources:
+        \begin{descriptenum}
+          \item[Ambient Light] Lights that are designed and positioned to provide uniform
+            illumination throughout the room.
+            Ambient illumination is characterised by an intensity, $\mathbf{I}_a$,
+            that is identical at every point in the scene.
+            Although every point in our scene receives the same illumination from $\mathbf{I}_a$,
+            each surface can reflect this light differently.
+          \item[Point Sources] An ideal \concept{point source} emits light equally
+            in all directions.
+            The intensity of illumination received from a point source is proportional to the
+            inverse square root of the distance between the source and surface.
+          \item[Spotlights] Characterised by a narrow range of angles through which light is
+            emitted.
+            We can construct a simple spotlight from a point source by limiting the angles
+            at which light from the source can be seen.
+            More realistic spotlights are characterised by the distribution of light
+            within the cone, usually with most of the light concentrated in the
+            centre of the cone.
+          \item[Distant Light] If the light source is far from the surface, the vector
+            does not change much as we move from point to point.
+            All rays are parallel, and we replace the location (point) of the light source
+            with the direction (vector) of the light.
+        \end{descriptenum}
+
+    \section{The Phong Reflection Model}
+      The Phong model uses four vectors to calculate a colour for an arbitrary point $\mathbf{p}$
+      on a surface.
+      \begin{descriptimize}[nosep]
+        \item[$\mathbf{n}$] The normal at $\mathbf{p}$.
+        \item[$\mathbf{v}$] In the direction from $\mathbf{p}$ to the viewer or COP.
+        \item[$\mathbf{l}$] In the direction of a line from $\mathbf{p}$ to an arbitrary point
+          on the source for a distributed light source, or to the point light source.
+        \item[$\mathbf{r}$] The direction that a perfectly reflected ray from $\mathbf{l}$ would
+          take.
+          Determined by $\mathbf{n}$ and $\mathbf{l}$.
+      \end{descriptimize}
+      If the surface is curved, all four vectors can change as we move from point to point.
+
+      The Phong model supports three types of material-light interactions: ambient, diffuse,
+      and specular.
+      For each light source, we can have separate ambient, diffuse, and specular components
+      for each of the three primary colours.
+      Thus, we need nine coefficients to characterise these terms at any point $\mathbf{p}$.
+      We can place these coefficients in a $3 \times 3$ illumination matrix for the $i$th
+      light source:
+      \begin{align*}
+        \mathbf{L}_i = \begin{bmatrix}
+          L_{i\mathrm{ra}} & L_{i\mathrm{ga}} & L_{i\mathrm{ba}} \\
+          L_{i\mathrm{rd}} & L_{i\mathrm{gd}} & L_{i\mathrm{bd}} \\
+          L_{i\mathrm{rs}} & L_{i\mathrm{gs}} & L_{i\mathrm{bs}}
+        \end{bmatrix}
+      \end{align*}
+
+      \subsection{Ambient Reflection}
+        The intensity of ambient light $I_a$ is the same at every point on the surface.
+        Some of this light is absorbed, and some is reflected.
+        The amount reflected is given by the ambient reflection coefficient $R_a = k_a$.
+        Because only a positive fraction of the light is reflected,
+        we must have
+        \begin{align*}
+          0 \leq k_a \leq 1
+        \end{align*}
+        and thus
+        \begin{align*}
+          I_a = k_a L_a
+        \end{align*}
+        Here, $L_a$ can be any of the individual light sources,
+        or it can be a global ambient term.
+
+      \subsection{Diffuse Reflection}
+        A perfectly diffuse reflector scatters the light that it reflects equally in all directions.
+        Hence, such a surface appears the same to all viewers.
+
+        The amount of light reflected depends both on the material
+        -- because some of the incoming light is absorbed --
+        and on the position of the light source relative to the surface.
+
+        Diffuse reflections are characterised by rough surfaces.
+        Perfectly diffuse surfaces, which are sometimes called \concept{Lambertian~surfaces},
+        are so rough that there is no preferred angle of reflection,
+        and can be modelled mathematically with \concept{Lambert's Law}.
+
+        \begin{definition}{Lambert's Law}
+          We see only the vertical component of the incoming light.
+
+          The reflected light is proportional to the cosine of the angle between the normal
+          and the direction of the light source.
+          \begin{align*}
+            R_d \propto \cos\theta
+          \end{align*}
+          where $\theta$ is the angle between the normal at the point of interest $\mathbf{n}$
+          and the direction of the light source $\mathbf{l}$.
+
+          If both $\mathbf{l}$ and $\mathbf{n}$ are unit vectors,
+          then
+          \begin{align*}
+            \cos\theta = \mathbf{l} \cdot \mathbf{n}
+          \end{align*}
+          If we add in a reflection coefficient $k_d$, representing the fraction of incoming
+          diffuse light that is reflected,
+          we have the diffuse reflection term:
+          \begin{align*}
+            I_d = k_d (\mathbf{l} \cdot \mathbf{n}) L_d
+          \end{align*}
+        \end{definition}
+
+      \subsection{Specular Reflection}
+        If we employ only ambient and diffuse reflections, our images will be shaded and will
+        appear 3D, but all surfaces will look dull.
+        Specular reflection adds a highlight that we see reflected from shiny objects.
+
+        Whereas a diffuse surface is rough, a specular surface is smooth.
+        As the surface gets smoother, the reflected light is concentrated in a smaller range
+        of angles centred about the angle of a perfect reflector.
+        The pattern by which light is reflected is not symmetric,
+        but depends on the wavelength of the incident light,
+        and it changes with the reflection angle.
+
+        The amount of light that the viewer sees depends on the angle $\phi$ between
+        $\mathbf{r}$, the direction of a perfect reflector,
+        and $\mathbf{v}$, the direction of the viewer.
+
+        The Phong model uses the equation
+        \begin{align*}
+          I_s = k_s L_s \cos^{\alpha} \phi.
+        \end{align*}
+        The coefficient $k_s$ is the fraction of the incoming specular light that is reflected.
+        The exponent $\alpha$ is a \concept{shininess} coefficient.
+        As $\alpha$ increases, the reflected light is concentrated in a narrower region.
+
+        The computational advantage of the Phong model is that if we have normalised
+        $\mathbf{r}$ and $\mathbf{v}$ to unit length,
+        we can again use the dot product, and the specular term becomes
+        \begin{align*}
+          I_s = k_s L_s (\mathbf{r}, \mathbf{v})^{\alpha}
+        \end{align*}
+
+        \begin{theorem}{Phong Model (with Distance Term)}
+          \begin{align*}
+            I = \frac{1}{a + bd + cd^2}\bigl(k_d L_d \max(\mathbf{l} \cdot \mathbf{n}, 0)
+            + k_s L_s \max\left((\mathbf{r} \cdot \mathbf{v})^{\alpha}, 0\right) \bigr)
+            + k_a L_a
+          \end{align*}
+          That is, distance times diffuse surfaces plus specular surfaces, plus ambient.
+
+          This formula is computed for each light source and for each primary.
+        \end{theorem}
+
+      \subsection{The Modified Phong Model}
+        If we use the Phong model with specular reflections in our rendering,
+        the dot product $\mathbf{r} \cdot \mathbf{v}$ should be recalculated at every point
+        on the surface.
+
+        We can obtain an interesting approximation by using the unit vector halfway
+        between the viewer vector and the light source vector:
+        \begin{align*}
+          \mathbf{h} = \frac{\mathbf{l} + \mathbf{h}}{\lvert \mathbf{l} + \mathbf{v} \rvert}
+        \end{align*}
+
+        If we replace $\mathbf{r} \cdot \mathbf{v}$ with $\mathbf{n} \cdot \mathbf{h}$,
+        we avoid calculation of $\mathbf{r}$.
+        We can use the \concept{halfway vector} $\mathbf{h}$ together with the angle $\psi$
+        -- the angle between $\mathbf{n}$ and $\mathbf{h}$ to simplify specular calculations.
+        When we use the halfway vector in the calculation of the specular term,
+        we are using the \concept{Blinn-Phong (or modified Phong) lighting model}.
+
+    \section{Computation of Vectors}
+      \subsection{Normal Vectors}
+        For smooth surfaces, the vector normal to the surface exists at every point.
+        Its calculation depends on how the surface is represented mathematically.
+
+        A plane can be described by the equation
+        \begin{align*}
+          ax + by + cz + d = 0
+        \end{align*}
+        This equation can also be written in terms of the normal to the plane, $\mathbf{n}$,
+        and a point $\mathbf{p}_0$, known to be on the plane:
+        \begin{align*}
+          \mathbf{n} \cdot (\mathbf{p} - \mathbf{p}_0) = 0
+        \end{align*}
+        where $\mathbf{p}$ is any point $(x, y, z)$ on the plane.
+        The vector $\mathbf{n}$ is given by
+        \begin{align*}
+          \mathbf{n} = \begin{bmatrix}
+            a \\
+            b \\
+            c
+          \end{bmatrix}
+        \end{align*}
+
+        If we are given three non-collinear points $p_0, p_1, p_2$, we can calculate the normal
+        of the plane in which they lie as
+        \begin{align*}
+          \mathbf{n} = (p_2 - p_0) \times (p_1 - p_0)
+        \end{align*}
+        The order in which we multiply the vectors determines the direction of the resulting
+        vector, and affects the lighting calculations, because it can change the surface
+        from outward pointing to inward pointing.
+
+        At every point $(x, y, z)$ on the surface of a sphere centred at the origin,
+        we have that $\mathbf{n} = (x, y, z)$
+
+      \subsection{Angle of Reflection}
+        Once we have calculated the normal at a point, we can use this normal and the direction
+        of the light source to compute the direction of a perfect reflection.
+        An ideal mirror is characterised by the following statement:
+        \emph{`The angle of incidence is equal to the angle of reflection'}.
+        The \concept{angle of incidence} is the angle between the normal and the light source.
+        The \concept{angle of reflection} is the angle between the normal and the direction
+        in which the light is reflected.
+
+        To solve $\mathbf{r}$, we first normalise both $\mathbf{l}$ and $\mathbf{n}$.
+        Then
+        \begin{align*}
+          \mathbf{r} = 2 (\mathbf{l} \cdot \mathbf{n}) \mathbf{n} - \mathbf{l}
+        \end{align*}
+
+    \pagebreak
+
+    \section{Polygonal Shading}
+      A polygonal mesh comprises many flat polygons, each of which has a well-defined normal.
+      There are three ways to shade these polygons:
+      \begin{descriptimize}
+        \item[Flat Shading (Constant Shading)] If the three vectors are constant,
+          then the shading calculation needs to be carried out only once for each polygon,
+          and each point on the polygon is assigned the same shade.
+
+          For a flat polygon, $\mathbf{n}$ is constant.
+          If the viewer is distant, then $\mathbf{v}$ is constant.
+          If the light source is distant, then $\mathbf{l}$ is constant.
+
+          Flat shading will show differences in shading among the polygons in our mesh.
+          If we see an increasing sequence of intensities, we perceive the increases in brightness
+          as overshooting on one side of an intensity step, and undershooting on the other.
+          We see stripes, known as \concept{Mach~bands}, along the edges.
+        \item[Goraud Shading (Smooth Shading)] The lighting calculation is made at each vertex
+          using the material properties, and the vectors $\mathbf{n}$, $\mathbf{v}$
+          and $\mathbf{l}$ are computed for each vertex.
+          Thus, each vertex will have its own colour that the rasterizer can use to interpolate
+          a shade for each fragment.
+
+          If the light source is distant, and either the viewer is distant or there are no
+          specular reflections, then smooth (or interpolative) shading shades a polygon
+          in a constant colour.
+
+          Because multiple polygons meet at interior vertices of the mesh,
+          each with its own normal, the normal at the vertex is discontinuous.
+          The vertex can be defined to achieve smoother shading through interpolation.
+
+          In \concept{Goraud shading}, we define the normal at a vertex to be the normalised
+          average of the normals of the polygons that share the vertex.
+        \item[Phong Shading] Instead of interpolating vertex intensities, we interpolate
+          normals across each polygon.
+          We can compute vertex normals by interpolating over the normals of the polygons
+          that share the vertex.
+          Next, we can use interpolation to interpolate the normals over the polygon.
+          We make an independent lighting calculation for each fragment.
+          We implement Phong shading in the fragment shader, and it is also known as
+          \concept{per-fragment shading}.
+      \end{descriptimize}
+
+    \section{Specifying Lighting Parameters}
+      \begin{sidenote}[float]{Approximation of a Sphere By Recursive Subdivision}
+        A sphere is not an object supported within WebGL, so we generate approximations of a sphere
+        using triangles using a process known as \concept{recursive subdivision}.
+      \end{sidenote}
+
+      With programmable shaders, we are free to implement different lighting models.
+      We can also choose where to apply a lighting model: in the application,
+      in the vertex shader, or in the fragment shader.
+      Consequently, we must define a group of lighting and material parameters
+      and then either use them in the application, or send them to the shaders.
+
+      \subsection{Light Sources}
+        Because spotlights and distant lights can be derived from a point source,
+        we focus point sources and ambient light.
+        An ideal point source emits light uniformly in all directions.
+        To obtain a spotlight from a point source, we limit the directions of the point
+        source and make the light emissions follow a desired profile.
+        To get a distant source from a point source, we need to allow the location of the source
+        to go to infinity, so the position of the source becomes the direction of the source.
+
+        Although the contribution of ambient light is the same everywhere in a scene,
+        ambient light is dependent on the sources in the environment.
+        Its colour depends not only on the colour of the source, but also on the reflective
+        properties of the surfaces in the room.
+        Nevertheless, the ambient component to the shade we see on a surface is ultimately
+        tied to the light sources in the environment,
+        and hence becomes part of the specification of the sources.
+
+        For every light source, we must specify its colour and either its location or its
+        direction.
+        The colour of a source will have three separate colour components
+        -- diffuse, specular, and ambient --
+        that we can specify for a single light.
+
+        We can specify the position of the light with a \mintinline{javascript}{vec4}.
+        For a point source, its position will be in homogeneous coordinates.
+        If the fourth component is changed to zero, the source becomes a directional source.
+
+        For a positional source, we may also want to account for the attenuation of light
+        received due to its distance from the source.
+        For an ideal source, the attenuation is inversely proportional to the square of the
+        distance $d$, but we can gain more flexibility by using the distance attenuation model:
+        \begin{align*}
+          f(d) = \frac{1}{a + bd + cd^2}
+        \end{align*}
+        which contains constant, linear, and quadratic terms.
+
+        We can convert a positional source to a spotlight by setting its direction,
+        the angle of the cone (or the spotlight cutoff), and the drop-off rate
+        (or spotlight exponent).
+
+      \subsection{Materials}
+        Material properties should match up directly with the supported light sources
+        and with the chosen reflection model.
+        We may also want the flexibility to specify different material properties for the front
+        and back faces of a surface.
+
+        We might specify ambient, diffuse, and specular reflectivity coefficients $(k_a, k_d, k_s)$
+        for each primary colour through three colours, either using RGB or RGBA colours.
+        Often the diffuse and specular reflectivity are the same.
+        For the specular component we also need to specify its shininess.
+
+        If we have different reflectivity properties for the front and back faces,
+        we can also specify three additional parameters:
+        \begin{minted}[autogobble]{javascript}
+          var backAmbient, backDiffuse, backSpecular;
+        \end{minted}
+        which can be used to render the back faces.
+
+        We also want to allow for scenes win which a light source is within the view volume,
+        and thus might be visible.
+        We can create such effects by including an emissive component that models
+        self-luminous sources.
+        This term is unaffected by any of the light sources,
+        and it does not affect any other surfaces.
+        It adds a fixed colour to the surfaces, and is specified in a manner similar to other
+        material properties.
+
+    \section{Implementing a Lighting Model}
+      Because light from multiple sources is additive, we can repeat the calculation for each
+      source and add up the individual contributions.
+      We can do this calculation in either the application, the vertex shader, or the
+      fragment shader.
+      Although the basic model can be the same for each, there will be major differences
+      in both efficiency and appearance depending on where the calculation is done.
+      For the sake of efficiency, we almost always want to do lighting calculations in the
+      shaders.
+
+      \subsection{Applying the Lighting Model in the Application}
+        In constant or flat shading, we apply a lighting model once for each polygon,
+        and use the computed colour for the entire polygon.
+        With interpolative shading, we apply the model at each vertex to compute a vertex
+        colour attribute.
+        The vertex shader can then output these colours, and the rasterizer will interpolate
+        them to determine a colour for each fragment.
+
+        The colour we need to compute is the sum of the ambient, diffuse, and specular contributions.
+        Each component of the ambient term is the produce of the corresponding terms from the
+        ambient light source and the material reflectivity.
+        We need the normal to compute the diffuse term.
+        The direction of the normal depends on the order of the vertices,
+        and assumes we are using the right-hand rule to determine an outward face.
+        Next, we need to take the dot product of the unit normal with the vector in the direction
+        of the light source.
+        There are four cases:
+        \begin{itemize}[nosep]
+          \item Constant Shading with a Distant Source
+          \item Interpolative Shading with a Distant Source
+          \item Constant Shading with a Finite Source
+          \item Interpolative Shading with a Finite Source
+        \end{itemize}
+
+      \subsection{Efficiency}
+        For a static scene, the lighting computation is done once, so we can sent the vertex
+        positions and vertex colours to the GPU once.
+        If the scene is not static, we must recompute the diffuse and specular components
+        at each of the vertices each time the scene changes.
+        If we do all the calculations on the CPU, both the vertex positions and colours
+        must then be sent to the GPU.
+        For large data sets, this process is extremely inefficient:
+        we are doing a lot of computation in the CPU, and are causing a potential bottleneck
+        by sending so much vertex data to the GPU.
+        So, we almost always want to do lighting calculation in the shaders.
+
+        Light sources are special types of geometric objects, and have geometric attributes,
+        such as position, just like polygons and points.
+        Hence, light sources can be affected by transformations.
+        We can specify them at the desired position, or specify them in a convenient position
+        and move them to the desired position by the model-view transformation.
+        The basic rule governing object placement is that vertices are converted to eye
+        coordinates by the model-view transformation in effect at the time the vertices
+        are defined.
+
+      \subsection{Lighting in the Vertex Shader}
+        To implement lighting in the vertex shader, we must carry out three steps:
+        \begin{enumerate}[nosep]
+          \item Choose a lighting model.
+          \item Write a vertex shader to implement the model.
+          \item Transfer the necessary data to the shader.
+            Some data can be transferred using uniform variables,
+            while other data can be transferred as vertex attributes.
+        \end{enumerate}
+
+    \section{Shading of the Sphere Model}
+      As we increase the number of subdivisions so that the interiors of the spheres
+      appear smooth, we can still see edges of polygons around the outside of the sphere image.
+      This type of outline is called a \concept{silhouette edge}.
+      Because two adjacent triangles will have different normals, and thus are shaded with
+      different colours, even if we create many triangles, we still can see the lack of smoothness.
+
+      The smoother the shading, the fewer polygons we need to model a sphere (or any curved surface).
+      To obtain the smoothest possible display we can get with relatively few triangles,
+      use the actual normals of the sphere for each vertex in the approximation.
+
+    \section{Per-Fragment Lighting}
+      We can do the lighting calculation on a per-fragment basis, rather than on a per-vertex basis.
+      When we did all our lighting calculations in the vertex shader, visually there was no
+      advantage over doing the same calculation in the application and then sending the computed
+      vertex colours to the vertex shader.
+      Whether we did the lighting in the vertex shader or in the application, the rasterizer
+      interpolated the same vertex colours to obtain fragment colours.
+
+      With a fragment shader, we can do an independent lighting calculation for each fragment.
+      The fragment shader needs to get the interpolated values of the normal vector,
+      light source position, and eye position from the rasterizer.
+      The vertex shader can compute these values and output them to the rasterizer.
+      In addition, the vertex shader must output the vertex position in clip coordinates.
+      The fragment shader can then apply the lighting model to each fragment
+      using the light and material parameters passed in from the application as uniform variables
+      and the interpolated vectors from the rasterizer.
+
+      We normalise vectors in the fragment shader rather than in the vertex shaders.
+      If we were to normalise a variable in the vertex shader, that would not guarantee
+      that the interpolated normals produced by the rasterizer would have the unit magnitude
+      needed for the lighting computation.
+
+      Because we can only render triangles in WebGL, unless we use Goraud shading with the true
+      normals, the normals will be the same whether we use per-vertex or per-fragment shading.
+      If the light source and viewer are relatively far from the surface,
+      so that each triangle makes only a small contribution to the rendered image,
+      we might not notice a significant difference between the two.
+      However, we may notice differences in efficiency that depend on both the application
+      and the particular GPU.
+
+      By doing the lighting calculations on a per-fragment instead of per-vertex basis,
+      we can obtain highly smooth and realistic looking shadings.
+
+      \begin{sidenote}[float]{Non-Photorealistic Shading}
+        Programmable shaders make it possible not only to incorporate more realistic lighting
+        models in real time, but also to create non-photorealistic effects.
+        Two examples are the use of only a few colours, and emphasising the edges in objects.
+      \end{sidenote}
+
+    \pagebreak
+
+    \section{Global Illumination}
+      Since each object is shaded independently, there are limitations imposed
+      by the local lighting models.
+      Shadows, reflections, and blockages of light are global effects, and require a global
+      lighting model.
+      Although such models exist, they are incompatible with the pipeline model.
+      With the pipeline model, we must render each polygon independently of the other polygons,
+      and we want our image to be the same regardless of the order in which the application
+      produces the polygons.
+
+      There are two alternate rendering strategies -- ray tracing and radiosity --
+      that can handle global effects.
+      Each is best at different lighting conditions.
+
+      \begin{definition}{Ray Tracing}
+        \concept{Ray tracing} starts with the synthetic-camera model but determines,
+        for each projector that strikes a polygon,
+        whether that point is indeed illuminated by one or more sources
+        before computing the local shading at each point.
+
+        Consider a polygon blocked from a light source, with two other polygons in the scene.
+        A local renderer might use the modified Phong model to compute the shade
+        at the point of intersection.
+        The ray tracer would find that the light source cannot strike the point of intersection
+        directly, but that light from the source is reflected from the third polygon
+        and this reflected light illuminates the point of intersection.
+      \end{definition}
+
+      \begin{definition}{Radiosity}
+        A \concept{radiosity} renderer is based upon energy considerations.
+        From a physical point of view, all the light energy in a scene is conserved.
+        Consequently, there is an energy balance that accounts for all the light
+        that radiates from sources and is reflected by various surfaces in the scene.
+      \end{definition}
+
+      A ray tracer is best suited to a scene consisting of highly reflecting surfaces,
+      whereas a radiosity renderer is best suited for a scene in which all the surfaces
+      are perfectly diffuse.
+
+    \rulechapterend
+
+\end{document}
