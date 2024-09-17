@@ -530,4 +530,47 @@
         Two examples are the use of only a few colours, and emphasising the edges in objects.
       \end{sidenote}
 
+    \pagebreak
+
+    \section{Global Illumination}
+      Since each object is shaded independently, there are limitations imposed
+      by the local lighting models.
+      Shadows, reflections, and blockages of light are global effects, and require a global
+      lighting model.
+      Although such models exist, they are incompatible with the pipeline model.
+      With the pipeline model, we must render each polygon independently of the other polygons,
+      and we want our image to be the same regardless of the order in which the application
+      produces the polygons.
+
+      There are two alternate rendering strategies -- ray tracing and radiosity --
+      that can handle global effects.
+      Each is best at different lighting conditions.
+
+      \begin{definition}{Ray Tracing}
+        \concept{Ray tracing} starts with the synthetic-camera model but determines,
+        for each projector that strikes a polygon,
+        whether that point is indeed illuminated by one or more sources
+        before computing the local shading at each point.
+
+        Consider a polygon blocked from a light source, with two other polygons in the scene.
+        A local renderer might use the modified Phong model to compute the shade
+        at the point of intersection.
+        The ray tracer would find that the light source cannot strike the point of intersection
+        directly, but that light from the source is reflected from the third polygon
+        and this reflected light illuminates the point of intersection.
+      \end{definition}
+
+      \begin{definition}{Radiosity}
+        A \concept{radiosity} renderer is based upon energy considerations.
+        From a physical point of view, all the light energy in a scene is conserved.
+        Consequently, there is an energy balance that accounts for all the light
+        that radiates from sources and is reflected by various surfaces in the scene.
+      \end{definition}
+
+      A ray tracer is best suited to a scene consisting of highly reflecting surfaces,
+      whereas a radiosity renderer is best suited for a scene in which all the surfaces
+      are perfectly diffuse.
+
+    \rulechapterend
+
 \end{document}
