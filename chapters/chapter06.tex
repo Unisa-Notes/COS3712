@@ -208,4 +208,25 @@
         antialiasing, and hidden-surface removal all take place in this stage.
       \end{definition}
 
+    \section{Clipping}
+      \begin{definition}{Clipping}
+        The process of determining which primitives, or parts of primitives,
+        fit within the clipping or view volume defined by the application program.
+      \end{definition}
+
+      Clipping is done before the perspective division that is necessary if the $w$-component
+      of a clipped vertex is not equal to 1.
+      The portions of all primitives that can possibly be displayed lie within the cube
+      \begin{align*}
+        w \geq x \geq -w \\
+        w \geq y \geq -w \\
+        w \geq z \geq -w
+      \end{align*}
+      This coordinate system is called \concept{normalised device coordinates}
+      because it depends on neither the original application units nor the particulars
+      of the display device,
+      although the information to produce the correct image is retained in this coordinate system.
+      The projection has also only been carried out partially: we still need to do the
+      perspective division and the final orthographic projection.
+
 \end{document}
