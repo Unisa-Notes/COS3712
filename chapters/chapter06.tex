@@ -415,4 +415,69 @@
         It adds a fixed colour to the surfaces, and is specified in a manner similar to other
         material properties.
 
+    \section{Implementing a Lighting Model}
+      Because light from multiple sources is additive, we can repeat the calculation for each
+      source and add up the individual contributions.
+      We can do this calculation in either the application, the vertex shader, or the
+      fragment shader.
+      Although the basic model can be the same for each, there will be major differences
+      in both efficiency and appearance depending on where the calculation is done.
+      For the sake of efficiency, we almost always want to do lighting calculations in the
+      shaders.
+
+      \subsection{Applying the Lighting Model in the Application}
+        In constant or flat shading, we apply a lighting model once for each polygon,
+        and use the computed colour for the entire polygon.
+        With interpolative shading, we apply the model at each vertex to compute a vertex
+        colour attribute.
+        The vertex shader can then output these colours, and the rasterizer will interpolate
+        them to determine a colour for each fragment.
+
+        The colour we need to compute is the sum of the ambient, diffuse, and specular contributions.
+        Each component of the ambient term is the produce of the corresponding terms from the
+        ambient light source and the material reflectivity.
+        We need the normal to compute the diffuse term.
+        The direction of the normal depends on the order of the vertices,
+        and assumes we are using the right-hand rule to determine an outward face.
+        Next, we need to take the dot product of the unit normal with the vector in the direction
+        of the light source.
+        There are four cases:
+        \begin{itemize}[nosep]
+          \item Constant Shading with a Distant Source
+          \item Interpolative Shading with a Distant Source
+          \item Constant Shading with a Finite Source
+          \item Interpolative Shading with a Finite Source
+        \end{itemize}
+
+      \subsection{Efficiency}
+        For a static scene, the lighting computation is done once, so we can sent the vertex
+        positions and vertex colours to the GPU once.
+        If the scene is not static, we must recompute the diffuse and specular components
+        at each of the vertices each time the scene changes.
+        If we do all the calculations on the CPU, both the vertex positions and colours
+        must then be sent to the GPU.
+        For large data sets, this process is extremely inefficient:
+        we are doing a lot of computation in the CPU, and are causing a potential bottleneck
+        by sending so much vertex data to the GPU.
+        So, we almost always want to do lighting calculation in the shaders.
+
+        Light sources are special types of geometric objects, and have geometric attributes,
+        such as position, just like polygons and points.
+        Hence, light sources can be affected by transformations.
+        We can specify them at the desired position, or specify them in a convenient position
+        and move them to the desired position by the model-view transformation.
+        The basic rule governing object placement is that vertices are converted to eye
+        coordinates by the model-view transformation in effect at the time the vertices
+        are defined.
+
+      \subsection{Lighting in the Vertex Shader}
+        To implement lighting in the vertex shader, we must carry out three steps:
+        \begin{enumerate}[nosep]
+          \item Choose a lighting model.
+          \item Write a vertex shader to implement the model.
+          \item Transfer the necessary data to the shader.
+            Some data can be transferred using uniform variables,
+            while other data can be transferred as vertex attributes.
+        \end{enumerate}
+
 \end{document}
