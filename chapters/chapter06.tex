@@ -336,4 +336,83 @@
           \concept{per-fragment shading}.
       \end{descriptimize}
 
+    \section{Specifying Lighting Parameters}
+      \begin{sidenote}[float]{Approximation of a Sphere By Recursive Subdivision}
+        A sphere is not an object supported within WebGL, so we generate approximations of a sphere
+        using triangles using a process known as \concept{recursive subdivision}.
+      \end{sidenote}
+
+      With programmable shaders, we are free to implement different lighting models.
+      We can also choose where to apply a lighting model: in the application,
+      in the vertex shader, or in the fragment shader.
+      Consequently, we must define a group of lighting and material parameters
+      and then either use them in the application, or send them to the shaders.
+
+      \subsection{Light Sources}
+        Because spotlights and distant lights can be derived from a point source,
+        we focus point sources and ambient light.
+        An ideal point source emits light uniformly in all directions.
+        To obtain a spotlight from a point source, we limit the directions of the point
+        source and make the light emissions follow a desired profile.
+        To get a distant source from a point source, we need to allow the location of the source
+        to go to infinity, so the position of the source becomes the direction of the source.
+
+        Although the contribution of ambient light is the same everywhere in a scene,
+        ambient light is dependent on the sources in the environment.
+        Its colour depends not only on the colour of the source, but also on the reflective
+        properties of the surfaces in the room.
+        Nevertheless, the ambient component to the shade we see on a surface is ultimately
+        tied to the light sources in the environment,
+        and hence becomes part of the specification of the sources.
+
+        For every light source, we must specify its colour and either its location or its
+        direction.
+        The colour of a source will have three separate colour components
+        -- diffuse, specular, and ambient --
+        that we can specify for a single light.
+
+        We can specify the position of the light with a \mintinline{javascript}{vec4}.
+        For a point source, its position will be in homogeneous coordinates.
+        If the fourth component is changed to zero, the source becomes a directional source.
+
+        For a positional source, we may also want to account for the attenuation of light
+        received due to its distance from the source.
+        For an ideal source, the attenuation is inversely proportional to the square of the
+        distance $d$, but we can gain more flexibility by using the distance attenuation model:
+        \begin{align*}
+          f(d) = \frac{1}{a + bd + cd^2}
+        \end{align*}
+        which contains constant, linear, and quadratic terms.
+
+        We can convert a positional source to a spotlight by setting its direction,
+        the angle of the cone (or the spotlight cutoff), and the drop-off rate
+        (or spotlight exponent).
+
+      \subsection{Materials}
+        Material properties should match up directly with the supported light sources
+        and with the chosen reflection model.
+        We may also want the flexibility to specify different material properties for the front
+        and back faces of a surface.
+
+        We might specify ambient, diffuse, and specular reflectivity coefficients $(k_a, k_d, k_s)$
+        for each primary colour through three colours, either using RGB or RGBA colours.
+        Often the diffuse and specular reflectivity are the same.
+        For the specular component we also need to specify its shininess.
+
+        If we have different reflectivity properties for the front and back faces,
+        we can also specify three additional parameters:
+        \begin{minted}[autogobble]{javascript}
+          var backAmbient, backDiffuse, backSpecular;
+        \end{minted}
+        which can be used to render the back faces.
+
+        We also want to allow for scenes win which a light source is within the view volume,
+        and thus might be visible.
+        We can create such effects by including an emissive component that models
+        self-luminous sources.
+        This term is unaffected by any of the light sources,
+        and it does not affect any other surfaces.
+        It adds a fixed colour to the surfaces, and is specified in a manner similar to other
+        material properties.
+
 \end{document}
