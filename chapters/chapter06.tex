@@ -110,4 +110,102 @@
 
       Within these two major categories specified by two loops, each may contain other loops.
 
+    \section{Four Major Tasks}
+      There are four major tasks that any graphics system must perform to render a geometric
+      entity, as that entity passes from definition in a user program to possible display
+      on an output device:
+      \begin{enumerate}[nosep]
+        \item Modelling
+        \item Geometry processing
+        \item Rasterization
+        \item Fragment processing
+      \end{enumerate}
+
+      \begin{definition}{Modelling}
+        The usual results of the modelling process are sets of vertices that specify
+        a group of geometric objects supported by the rest of the system.
+        We can look at the modeller as a black box that produces geometric objects
+        and is usually a user program.
+
+        There are other tasks a modeller might perform, such as clipping.
+        A user can generate geometric objects in their program,
+        and hope that the rest of the system can process these objects at the rate at which
+        they are produced, or the modeller can attempt to ease the burden on the rest of the
+        system by minimising the number of objects that it passes on.
+        The latter approach often means that the modeller may do some of the same jobs
+        as the result of the system, albeit with different algorithms.
+        In the case of clipping, the modeller knows more about the specifics of the application,
+        and can often use a good heuristic to eliminate many, if not most,
+        primitives before they are sent on through the standard viewing process.
+      \end{definition}
+
+      \begin{definition}{Geometry Processing}
+        Geometry processing works with vertices.
+        The goals of the geometry processor are to determine which geometric objects
+        appear on the display, and to assign shades or colours to the vertices of these objects.
+        Four processes are required:
+        \begin{enumerate}[nosep]
+          \item Projection
+          \item Primitive Assembly
+          \item Clipping
+          \item Shading
+        \end{enumerate}
+
+        Usually, the first step in geometry processing is to change representations
+        from object coordinates to camera coordinates using the model-view transformation.
+        The second step is to transform vertices using the projection transformation
+        to a normalised view volume in which objects that might be visible are contained
+        in a cube centred at the origin.
+        Vertices are now represented in clip coordinates.
+
+        Before clipping can take place, vertices must be grouped into objects,
+        a process known as \concept{primitive assembly}.
+        When vertices reach the rasterizer, they can no longer
+        be processed individually, but only as primitives.
+
+        After clipping takes place, the remaining vertices are still in four-dimensional
+        homogeneous coordinates.
+        Perspective division converts theme to 3D representations in normalised device coordinates.
+        Per-vertex shading is also performed during this stage.
+
+        Collectively, these operations constitute \concept{front-end~processing}.
+        All are carried out on a vertex-by-vertex basis.
+      \end{definition}
+
+      \begin{definition}{Rasterization (Scan Conversion)}
+        We need to retain depth information for hidden-surface removal.
+        But only the $x, y$ values of the vertices are needed to determine which pixels
+        in the framebuffer can be affected by the primitive.
+        To generate a set of fragments that give the locations of the pixels in the framebuffer
+        corresponding to these vertices, we only need their $x, y$ components,
+        or, equivalently, the results of the orthogonal projection of these vertices.
+        We determine these fragments through a process called \concept{rasterization}
+        or \concept{scan~conversion}.
+        For line segments, rasterization determines which fragments should be used to approximate
+        a line segment between the projected vertices.
+        For polygons, rasterization determines which pixels lie inside the 2D polygon
+        determined by the projected vertices.
+
+        The colours we assign to these fragments can be determined by the vertex attributes,
+        or obtained by interpolating the shades at the vertices that are computed.
+        Objects more complex than line segments and polygons are usually approximated
+        by multiple line segments and triangles.
+
+        The rasterizer starts with vertices in normalised device coordinates,
+        but outputs fragments whose location are in units of the display
+        -- \concept{window coordinates}.
+        The projection of the clipping volume must appear in the assigned viewport.
+        We use the term \concept{screen~coordinates} to refer to the 2D system that is the same
+        as the window coordinates, but lacks the depth coordinate.
+      \end{definition}
+
+      \begin{definition}{Fragment Processing}
+        In the simplest situations, each fragment is assigned a colour by the rasterizer,
+        and this colour is placed in the framebuffer at the locations corresponding to the
+        fragment's location.
+
+        Per-fragment shading, texture-mapping, bump-mapping, alpha blending,
+        antialiasing, and hidden-surface removal all take place in this stage.
+      \end{definition}
+
 \end{document}
