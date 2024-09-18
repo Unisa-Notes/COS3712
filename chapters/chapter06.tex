@@ -3,6 +3,7 @@
 
 \begin{document}
   \setcounter{chapter}{5}
+  \addtocontents{toc}{\protect\newpage}
   \chapter{From Vertices to Fragments}
     \begin{sidenote}{Textbook}
       In the textbook, this section corresponds to Chapter 8: From Geometry to Pixels.
@@ -451,5 +452,117 @@
         generating an unacceptable approximation to the line segment.
         To solve this, for slopes greater than 1, we swap the roles of $x$ and $y$.
       \end{definition}
+
+    \section{Bresenham's Algorithm}
+      The DDA algorithm requires a floating-point addition for each pixel generated.
+      Bresenham derived a line rasterization algorithm that avoids all floating-point calculations
+      and has become the standard algorithm used in hardware and software rasterizers.
+
+      The calculation of each successive pixel in the colour buffer requires only an addition
+      and a sign test.
+
+    \section{Polygon Rasterization}
+      One of the major advantages that the first raster systems brought to users
+      was the ability to display filled polygons.
+
+      Flat simple polygons have well-defined interiors.
+      If they are also convex, they are guaranteed to be rendered correctly by OpenGL.
+
+      \subsection{Inside-Outside Testing}
+        The only type of polygon supported by WebGL is a triangle.
+        For non-flat polygons, we can work with their projections, or we can use
+        the first three vertices to determine a plane to use for the interior.
+        Conceptually, the process of filling the inside of a polygon with a colour or pattern
+        is equivalent to deciding which points in the plane of the polygon are interior (inside)
+        points.
+        There are two tests used to make inside-outside decisions:
+        \begin{itemize}[nosep]
+          \item the \concept{crossing} or \concept{odd-even test}, and
+          \item the \concept{winding test}.
+        \end{itemize}
+
+        \begin{definition}{Crossing (Odd-Even) Test}
+          The most widely used test for making inside-outside decisions.
+
+          Suppose that $\mathbf{p}$ is a point inside a polygon.
+          Any ray emanating from $\mathbf{p}$ and going to infinity must cross an odd number
+          of edges.
+          Any ray emanating from a point outside the polygon and entering the polygon
+          crosses an even number of edges before reaching infinity.
+          Hence, a point can be defined as being inside if after drawing a line through it
+          and following this line, starting on the outside, we cross an odd number of edges
+          before reaching it.
+
+          Odd-even testing is easy to implement, and integrates well with the standard rendering
+          algorithms.
+          Usually, we replace rays through points with scan lines, and we count the crossing
+          of polygon edges to determine inside and outside.
+        \end{definition}
+
+        \begin{definition}{Winding Test}
+          Considers the polygon as a knot being wrapped around a point or a line.
+
+          To implement the test, we consider traversing the edges of the polygon from any
+          starting vertex, and going around the edge in a particular direction until we
+          reach the starting point.
+
+          Next, we consider an arbitrary point.
+          The \concept{winding~number} for this point is the number of times it is encircled
+          by the edges of the polygon.
+          We count clockwise encirclements as positive, and counterclockwise encirclements
+          as negative (or vice versa).
+          Points are inside the polygon if its winding number is not zero.
+        \end{definition}
+
+      \subsection{WebGL and Concave Polygons}
+        Because WebGL renders only triangles that are flat and convex,
+        we still have the problem of what to do with more general polygons.
+        One approach is to work with the application to ensure that they only generate triangles.
+        Another is to provide software that can tessellate a given polygon into triangles.
+        A good tessellation should not produce triangles that are long and thin;
+        it should produce triangles that can use supported features, such as triangle strips
+        and triangle fans.
+
+      \subsection{Fill and Sort}
+        A different approach to rasterization of polygons starts with the idea of a
+        \concept{polygon~processor}: a black box whose inputs are the vertices
+        for a set of 2D polygons, and whose output is a framebuffer with the correct pixels set.
+        This conceptual algorithm indicates that polygon fill is a sorting problem,
+        where we sort all the pixels in the framebuffer into those that are inside the polygon
+        and those that are not.
+        From this perspective, we obtain different polygon fill algorithms using different ways
+        of sorting the points:
+        \begin{itemize}[nosep]
+          \item Flood fill
+          \item Scan line fill
+          \item Odd-even fill
+        \end{itemize}
+
+      \subsection{Flood Fill}
+        We can display an unfilled polygon by rasterizing its edges into the framebuffer
+        using Bresenham's algorithm.
+        Suppose we have only two colours: a background colour and a foreground colour.
+        We can use the foreground colour to rasterize the edges.
+        If we can find an initial point $(x, y)$ inside the polygon -- a \concept{seed~point} --
+        then we can look at its neighbours recursively, colouring them with the
+        foreground colour if they are not edge points.
+
+        We can obtain a number of variants of flood fill by removing the recursion.
+        One way to do so is to work one scan line at a time.
+
+      \subsection{Singularities}
+        We can extend most polygon fill algorithms to other shapes.
+        Polygons have the distinct advantage that the locations of their edges are known exactly.
+        Even polygons can present problems when their vertices lie on scan lines.
+
+        We can fix these problems by preventing the special case of a vertex lying on an edge
+        -- a \concept{singularity} -- from ever arising.
+        We rule it out by ensuring that no vertex has an integer $y$ value.
+        Another method is to consider a virtual framebuffer of twice the resolution of the
+        real framebuffer.
+        In the virtual framebuffer, pixels are located only at even values of $y$,
+        and all vertices are located only at odd values of $y$.
+        Placing pixel centres halfway between integers, as OpenGL does,
+        is equivalent to using this approach.
 
 \end{document}
