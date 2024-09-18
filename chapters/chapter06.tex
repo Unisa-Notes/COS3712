@@ -385,4 +385,71 @@
         multiple shortenings of line segments and related re-executions of the clipping
         algorithm.
 
+    \section{Rasterization}
+      Line segments and polygons are defined by vertices.
+      We can assume that we have clipped the primitives such that each remaining primitive
+      is within the view volume.
+
+      \concept{Fragments} are potential pixels.
+      Each fragment has a colour attribute and a location in screen coordinates
+      that corresponds to a location in the colour buffer.
+
+      We further assume that the colour buffer is an $n \times m$~array of pixels,
+      with $(0, 0)$ corresponding to the lower-left corner.
+      Pixels can be set to a given colour by a single function inside the graphics implementation
+      of the form
+      \begin{minted}[autogobble]{javascript}
+        var writePixel(ix, iy, value);
+      \end{minted}
+
+      Pixels have attributes that are colours in the colour buffer.
+      Pixels can be displayed in multiple shapes and sizes that depend on the characteristics
+      of the display.
+
+      The simplest scan conversion algorithm for line segments is the \concept{DDA~algorithm},
+      after the digital differential analyzer.
+      Because a line satisfies the differential equation $dy/dx = m$, where $m$ is the slope,
+      generally a line segment is equivalent to solving a simple differential equation
+      numerically.
+
+      \begin{definition}{DDA Algorithm}
+        Suppose we have a line segment defined by the endpoints $(x_1, y_1)$ and $(x_2, y_2)$.
+        Because we are working in a colour buffer, we assume these values have been rounded
+        to integer values, so the line segment starts and ends at a known pixel.
+        The slope is given by
+        \begin{align*}
+          m = \frac{y_2 - y_1}{x_2 - x_1} = \frac{\Delta y}{\Delta x}.
+        \end{align*}
+        We assume that
+        \begin{align*}
+          0 \leq m \leq 1
+        \end{align*}
+        We can handle other values of $m$ using symmetry.
+
+        This algorithm is based on writing a pixel for each value of \texttt{ix} in
+        \texttt{write\_pixel} as $x$ goes from $x_1$ to $x_2$.
+        If we are on the line segment, for any change in $x$ equal to $\Delta x$,
+        the corresponding change in $y$ must be
+        \begin{align*}
+          \Delta y = m \Delta x
+        \end{align*}
+        As we move from $x_1$ to $x_2$, we increase $x$ by 1 in each iteration,
+        so we must increase $y$ by $m$.
+        Although each $x$ is an integer, each $y$ is not, because $m$ is a floating point number,
+        and we must round it to find the appropriate pixel.
+
+        The algorithm in pseudocode is
+        \begin{minted}[autogobble]{javascript}
+          for (ix = x1, ix <= x2; ++ix) {
+            y += m;
+            writePixel(x, round(y), line_color);
+          }
+        \end{minted}
+        where \mintinline{javascript}{round} is function that rounds a real number to an integer.
+
+        For large slopes, the separation between pixels that are coloured can be large,
+        generating an unacceptable approximation to the line segment.
+        To solve this, for slopes greater than 1, we swap the roles of $x$ and $y$.
+      \end{definition}
+
 \end{document}
