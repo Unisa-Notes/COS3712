@@ -229,4 +229,160 @@
       The projection has also only been carried out partially: we still need to do the
       perspective division and the final orthographic projection.
 
+    \section{Line-Segment Clipping}
+      A \concept{clipper} determines which primitives, or parts of primitives,
+      can possibly appear on the display and be passed on the rasterizer.
+      Primitives that fit within the specified view volume pass through the clipper,
+      or are \concept{accepted}.
+      Primitives that cannot appear on the display are \concept{rejected} or \concept{culled}.
+      Primitives that are only partially within the view volume must be clipped such that
+      any part lying outside the volume is removed.
+
+      \subsection{Cohen-Sutherland Clipping}
+        We want to avoid intersection calculations with the sides of the window,
+        because each intersection calculation requires a floating point division.
+        The \concept{Cohen-Sutherland algorithm} replaces most of the expensive floating
+        point multiplications and divisions with a combination of floating point subtractions
+        and bit operations.
+
+        The algorithm starts by extending the sides of the window to infinity,
+        thus breaking up space into nine regions:
+        \begin{center}
+          \includegraphics[height=4cm]{\main/images/chapter06/cohen_sutherland.png}
+        \end{center}
+        Each region can be assigned a unique 4-bit binary number, or \concept{outcode}, $b_0 b_1 b_2 b_3$
+        as follows.
+        Suppose that $(x, y)$ is a point in the region; then
+        \begin{align*}
+          b_0 = \begin{cases}
+            1 \quad \text{if } y > y_{\text{max}}\\
+            0 \quad \text{otherwise.}
+          \end{cases}
+        \end{align*}
+        Likewise, $b_1$ is 1 if $y < y_{\text{min}}$, and $b_2$ and $b_3$ are determined similarly,
+        but for $x$.
+        For each endpoint of a line segment, we first compute the endpoint's outcode,
+        a step that can require eight floating-point subtractions per line segment.
+
+        \begin{figure}[b]
+          \begin{center}
+            \includegraphics[width=0.7\textwidth]{images/chapter06/outcode_cases.png}
+          \end{center}
+          \caption{Cases of outcodes in Cohen-Sutherland algorithm.}
+          \label{fig:cases}
+        \end{figure}
+
+        Consider a line segment whose outcodes are given by $o_1 = \text{outcode}(x_1, y_1)$ and
+        $o_2 = \text{outcode}(x_2, y_2)$.
+        We can now reason on the basis of these outcodes.
+        There are four cases:
+        \begin{enumerate}
+          \item $(o_1 = o_2 = 0)$. Both endpoints are inside the clipping window,
+            as is true for the segment~$AB$ in \autoref{fig:cases}.
+            The entire line segment is inside, and the segment can be sent on to be rasterized.
+          \item ($o_1 \neq 0, o_2 = 0$; or vice versa). One endpoint is inside the clipping window;
+            one is outside, as in segment~$CD$ in \autoref{fig:cases}.
+            The line segment must be shortened.
+            The nonzero outcode indicates which edge or edges of the window are crossed
+            by the segment.
+            One or two intersections must be computed.
+            After one segment is computed, we can compute the outcode of the point of intersection
+            to determine whether another intersection calculation is required.
+          \item ($o_1 \text{ \& } o_2 \neq 0$). Two endpoints lie on the same outside edge of the
+            window, as in segment~$EF$ in \autoref{fig:cases}.
+            Calculated by taking the bitwise \textsc{and} of the outcodes.
+            The line segment can be discarded.
+          \item ($o_1 \text{ \& } o_2 = 0$). Both edges are outside, but they are on the outside
+            of different edges of the window.
+            This is the case for segments~$GH$ and $IJ$ in \autoref{fig:cases}.
+            We cannot tell from just the outcodes whether the segment can be discarded,
+            or must be shortened.
+            The best we can do is to intersect with one of the sides of the window and to check
+            the outcode of the resulting point.
+        \end{enumerate}
+
+        With this algorithm, we do intersection calculations only when they are needed,
+        as in the second case, or where the outcodes did not contain enough information,
+        as in the fourth case.
+
+        The Cohen-Sutherland algorithm works best when there are many line segments but few
+        are actually displayed.
+        In this case, most of the line segments lie fully outside one or two of the extended
+        sides of the clipping rectangle and thus can be eliminated on the basis of their outcodes.
+        The other advantage is that this algorithm can be extended to three dimensions.
+        The main disadvantage of this algorithm is that it must be used recursively.
+
+      \subsection{Liang-Barsky Clipping}
+        If we use the parametric form for lines, we can approach the clipping of line segments
+        in a more efficient manner.
+        Suppose we have a line segment defined by the two endpoints
+        $\mathbf{p}_1 = [x_1, y_1]^{T}$ and $\mathbf{p}_2 = [x_2, y_2]^{T}$.
+        We can use these endpoints to define a unique line that we can express parametrically,
+        either in matrix form:
+        \begin{align*}
+          \mathbf{p}(\mathbf{\alpha}) = (1 - \alpha)\mathbf{p}_1 + \alpha \mathbf{p}_2
+        \end{align*}
+        or as two scalar equations
+        \begin{align*}
+          x(\alpha) = (1 - \alpha)x_1 + \alpha x_2 \\
+          y(\alpha) = (1 - \alpha)y_1 + \alpha y_2
+        \end{align*}
+        This form is robust and needs no changes for horizontal or vertical lines.
+        As the parameter $\mathbf{\alpha}$ varies from 0 to 1, we move along the segment from
+        $\mathbf{p}_1$ to $\mathbf{p}_2$.
+        Negative values give points on the other side of $\mathbf{p}_1$ from $\mathbf{p}_2$,
+        values of $\alpha > 1$ give points on the line past $\mathbf{p}_2$ going off to infinity.
+
+        Consider a line segment and the line of which it is part.
+        As long as the line is not parallel to a side of the window,
+        there are four points where the line interacts with the extended sides of the window.
+        These points correspond to the four values of the parameter: $\alpha_1$, $\alpha_2$,
+        $\alpha_3$, and $\alpha_4$.
+        One of these values corresponds to the line entering the window; another to the line
+        leaving.
+        We can order these intersections and determine which correspond to intersections
+        we need for clipping.
+
+        \begin{example}[Liang-Barsky Clipping]
+          \begin{center}
+            \captionsetup{type=figure}
+            \begin{subfigure}{0.4\linewidth}
+              \includegraphics[width=\textwidth]{\main/images/chapter06/liang_a.png}
+              \caption{Line Shown}
+              \label{fig:liang_a}
+            \end{subfigure}
+            \begin{subfigure}{0.4\linewidth}
+              \includegraphics[width=\textwidth]{\main/images/chapter06/liang_b.png}
+              \caption{Line Hidden}
+              \label{fig:liang_b}
+            \end{subfigure}
+            \caption{Two cases of a parametric line and a clipping window}
+          \end{center}
+
+          In \autoref{fig:liang_a}, we can see that
+          \begin{align*}
+            1 > \alpha_4 > \alpha_3 > \alpha_2 > \alpha_1 > 0.
+          \end{align*}
+          This means all intersections are inside the original line segment, and the two innermost
+          ($\alpha_2$~and~$\alpha_3$) determine the clipped segment.
+
+          We can distinguish this case from the case in \autoref{fig:liang_b},
+          which also has the four intersections between the endpoints of the line segment,
+          by noting that the order for this case is
+          \begin{align*}
+            1 > \alpha_4 > \alpha_2 > \alpha_3 > \alpha_1 > 0.
+          \end{align*}
+          The line intersects both the top and the bottom of the extended window before it
+          intersects either the left or the right; thus, the entire line segment must be
+          rejected.
+        \end{example}
+
+        All decisions about clipping can be made without floating point division.
+        Only if an intersection is needed (because a segment has to be shortened)
+        is the division done.
+
+        The efficiency of this approach, compared with Cohen-Sutherland, is that we avoid
+        multiple shortenings of line segments and related re-executions of the clipping
+        algorithm.
+
 \end{document}
