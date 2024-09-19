@@ -115,13 +115,13 @@
       There are two parallel pipelines: the geometric pipeline, and the pixel pipeline.
       For texture mapping, the pixel pipeline merges with fragment processing after rasterization.
       This architecture determines the type of texture mapping that is supported.
-      In particular, texture mapping is done as part of fragment processing.
+      Texture mapping is done as part of fragment processing.
       Each fragment that is generated can then be tested for visibility with the $z$-buffer.
       We can think of texture mapping as part of the shading process, but a part that is done
       on a fragment-by-fragment basis.
 
-      Texture coordinates are handled much like normals and colours.
-      They can be associated with vertices as an additional vertex attribute,
+      Texture coordinates are handled like normals and colours:
+      they can be associated with vertices as an additional vertex attribute,
       and the required texture values can be obtained by the rasterizer interpolating
       the texture coordinates at the vertices across polygons.
       They can also be generated in one of the shaders.
@@ -153,7 +153,7 @@
         As long as there is sufficient memory to retain them, these objects reside in the
         texture memory in the GPU.
 
-        \begin{sidenote}{New Way of Creating Textures}
+        \begin{sidenote}{Creating Textures}
           For a single texture, we start by creating a texture object:
           \begin{minted}[autogobble]{javascript}
             var texture = gl.createTexture();
@@ -166,18 +166,6 @@
           which become part of this texture object.
           We can delete an unused texture object with the function
           \mintinline{javascript}{gl.deleteTexture}.
-        \end{sidenote}
-
-        \begin{sidenote}{Old Way of Creating Textures}
-          $ $\vspace{-1em}
-          \begin{enumerate}
-            \item Get some unused texture identifiers by calling
-              \mintinline{javascript}{glGenTextures();}.
-            \item Bind the texture object (\mintinline{javascript}{glBindTexture()}) to make
-              it the current texture object.
-            \item Use texture functions to specify the texture image and its parameters,
-              which become part of the current texture object.
-          \end{enumerate}
         \end{sidenote}
 
       \subsection{Texture Coordinates and Samplers}
