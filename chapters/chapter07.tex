@@ -1,0 +1,413 @@
+\providecommand{\main}{..}
+\documentclass[../COS3712_Notes.tex]{subfiles}
+
+\begin{document}
+  \setcounter{chapter}{6}
+  \chapter{Discrete Techniques}
+    \section{Buffers}
+      What all buffers have in common is that they are inherently discrete:
+      they have limited resolution, both spatially and in depth.
+      We can define a (two-dimensional) \concept{buffer} as block of memory with
+      $n \times m$ $k$-bit elements.
+
+      The \concept{framebuffer} is the set of buffers that the graphics system uses for rendering,
+      including the front and back colour buffers, the depth buffer, and other buffers
+      the hardware may provide.
+
+    \section{Mapping Methods}
+      One of the most powerful uses of discrete data is for surface rendering.
+      The process of modelling an object by a set of geometric primitives and then rendering
+      these primitives has its limitations.
+
+      An alternative is not to attempt to build increasingly more complex models,
+      but rather to build a simple model and to add detail as part of the rendering process.
+      As the implementation renders a surface, it generates a set of fragments,
+      each of which corresponds to a pixel in the framebuffer.
+      Fragments carry colour, depth, and other information that can be used to determine
+      how they contribute to the pixels in which they correspond.
+      As part of the rasterization process, we must assign a shade or colour to each fragment.
+      These colours can be modified during fragment processing after rasterization.
+      The mapping algorithms can be thought of as wither modifying the shading algorithm
+      based on a 2D-array, the map, or modifying the shading by using the map to alter the
+      surface using three major techniques:
+      \begin{itemize}[nosep]
+        \item Texture mapping
+        \item Bump mapping
+        \item Environment mapping
+      \end{itemize}
+
+      \begin{definition}{Texture Mapping}
+        Uses an image (or texture) to influence the colour of a fragment.
+        Textures can be specified using a fixed pattern; by a procedural texture generation
+        method; or through a digitized image.
+        In all cases, we can characterise the resulting image as the mapping of a texture
+        to a surface, which is carried out as part of the rendering of the surface.
+      \end{definition}
+
+      \begin{definition}{Bump Maps}
+        Unlike texture maps, which paint patterns onto smooth surfaces,
+        \concept{bump~maps} distort the normal vectors during the shading process to make the
+        surface appear to have small variations in shape.
+      \end{definition}
+
+      \begin{definition}{Environment Maps (Reflection Maps)}
+        Allow us to create images that have the appearance of reflected materials
+        without having to trace reflected rays.
+        An image of the environment is painted onto the surface as that surface is being
+        rendered.
+      \end{definition}
+
+      \begin{sidenote}{Similarities Between the Three Methods}
+        $ $\vspace{-1em}
+        \begin{itemize}[nosep]
+          \item All three alter the shading of individual fragments as part of fragment processing.
+          \item All rely on the map being stored as a one-, two-, or three-dimensional image.
+          \item All keep the geometric complexity low while creating the illusion of complex
+            geometry.
+          \item All are subject to aliasing errors.
+        \end{itemize}
+      \end{sidenote}
+
+      Two-dimensional texture mapping is supported by WebGL.
+      Environment maps are a special case of standard texture mapping, but can be altered
+      to create a variety of new effects in the fragment shader.
+      Bump mapping requires us to process each fragment independently,
+      something we can do with a fragment shader.
+
+    \section{Two-Dimensional Texture Mapping}
+      Textures are patterns, and can be one-, two-, three, or four-dimensional.
+      Because the use of surfaces is so important in computer graphics,
+      mapping 2D textures to surfaces is by far the most common use of texture mapping.
+
+      Although there are multiple approaches to texture mapping, all require a sequence
+      of steps that involve mappings around three or four different coordinate systems:
+      \begin{descriptimize}[nosep]
+        \item[Screen coordinates.] Where the final image is produced.
+        \item[Object coordinates.] Where we describe the objects on which the textures will
+          be mapped.
+        \item[Texture coordinates.] Used to locate positions in the texture.
+        \item[Parametric coordinates.] Used to specify parametric surfaces.
+      \end{descriptimize}
+
+      In most applications, textures start out as 2D images.
+      These images are brought into processor memory as arrays.
+      We call the elements of these arrays \concept{texels (texture elements)},
+      rather than pixels, to emphasise how they will be used.
+      We prefer to think of this array as a continuous rectangular two-dimensional texture pattern
+      $T(s, t)$.
+      The independent variables $s$ and $t$ are known as \concept{texture coordinates}.
+      We can scale our texture coordinates to vary over the interval $[0.0, 1.0]$.
+
+      A \concept{texture map} associates a texel with each point on a geometric object
+      that is itself mapped to screen coordinates for display.
+
+      One way to think about texture mapping is in terms of two concurrent mappings:
+      the first from texture coordinates to object coordinates,
+      and the second from parametric coordinates to object coordinates.
+      A third mapping takes us from object coordinates to screen coordinates.
+
+      Conceptually, the texture mapping process is simple.
+      A small area of texture pattern maps to the area of the geometric surface,
+      corresponding to a pixel in the final image.
+
+    \section{Texture Mapping in WebGL}
+      WebGL's texture maps rely on its pipeline architecture.
+      There are two parallel pipelines: the geometric pipeline, and the pixel pipeline.
+      For texture mapping, the pixel pipeline merges with fragment processing after rasterization.
+      This architecture determines the type of texture mapping that is supported.
+      Texture mapping is done as part of fragment processing.
+      Each fragment that is generated can then be tested for visibility with the $z$-buffer.
+      We can think of texture mapping as part of the shading process, but a part that is done
+      on a fragment-by-fragment basis.
+
+      Texture coordinates are handled like normals and colours:
+      they can be associated with vertices as an additional vertex attribute,
+      and the required texture values can be obtained by the rasterizer interpolating
+      the texture coordinates at the vertices across polygons.
+      They can also be generated in one of the shaders.
+
+      \begin{figure}
+        \begin{center}
+          \includegraphics[width=0.8\textwidth]{\main/images/chapter07/two_pipelines.png}
+        \end{center}
+        \caption{Pixel and geometry pipelines.}
+      \end{figure}
+
+      Texture mapping requires interaction among the application program, the vertex shader,
+      and the fragment shader.
+      There are three basic steps:
+      \begin{enumerate}
+        \item Form a texture image and place it in texture memory on the GPU.
+        \item Assign texture coordinates to each fragment.
+        \item Apply the texture to each fragment.
+      \end{enumerate}
+
+      \subsection{Texture Objects}
+        In early versions of OpenGL, there was only a single texture,
+        the \concept{current texture}, that existed at any time.
+        Each time a different texture was needed, we had to set up a new texture map.
+
+        \concept{Texture~objects} allow the application program to define objects that consist
+        of the texture array and the various texture parameters that control its application
+        to surfaces.
+        As long as there is sufficient memory to retain them, these objects reside in the
+        texture memory in the GPU.
+
+        \begin{sidenote}{Creating Textures}
+          For a single texture, we start by creating a texture object:
+          \begin{minted}[autogobble]{javascript}
+            var texture = gl.createTexture();
+          \end{minted}
+          and then bind it as the current 2D texture object by executing
+          \begin{minted}[autogobble]{javascript}
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+          \end{minted}
+          Subsequent texture function specify the texture image and its parameters,
+          which become part of this texture object.
+          We can delete an unused texture object with the function
+          \mintinline{javascript}{gl.deleteTexture}.
+        \end{sidenote}
+
+      \subsection{Texture Coordinates and Samplers}
+        The key element in applying a texture in the fragment shader is the mapping
+        between the location of a fragment and the corresponding location within the texture image
+        where we will get the texture colour for that fragment.
+        Because each fragment has a location in the framebuffer that is one of its attributes,
+        we need not refer to this position explicitly in the fragment shader.
+        The potential difficulty is identifying the desired location in the texture image.
+
+        We use two floating point texture coordinates, $s$ and $t$,
+        both of which range over the interval $[0.0, 1.0]$ as we traverse the texture image.
+        It is up to the application and the shaders to determine the appropriate texture
+        coordinates for a fragment.
+        The most common method is to treat texture coordinates as a vertex attribute.
+        Thus, we could provide texture coordinates just as we provide vertex colours
+        in the application.
+        We would then pass these coordinates to the vertex shader and let the rasterizer
+        interpolate the vertex texture coordinates to fragment texture coordinates.
+
+        The vertex shader is only concerned with the texture coordinates,
+        and has nothing to do with the texture object we created earlier.
+
+        The key to putting everything together is a new type of variable called a \concept{sampler},
+        which we usually only use in a fragment shader.
+        A sampler variable provides access to a texture object, including all its parameters.
+        There are two types of sampler variables for the types of textures supported in WebGL:
+        \begin{itemize}
+          \item the two-dimensional (\mintinline{javascript}{sampler2D}), and
+          \item the cube map (\mintinline{javascript}{samplerCube}).
+        \end{itemize}
+        What a sampler does is return a value or sample of the texture image
+        for the input texture coordinates.
+
+      \subsection{Texture Sampling}
+        Aliasing of textures is a major problem.
+        When we map texture coordinates to the array of texels, we rarely get a point
+        that corresponds to the centre of a texel.
+        There are two options:
+        \begin{descriptimize}
+          \item[Point Sampling] Use the value of the texel that is closest to the texture
+            coordinate output by the rasterizer.
+            This option has the most visible aliasing errors.
+          \item[Linear Filtering] Use a weighted average of a group of texels in the neighbourhood
+            of the texel determined by point sampling.
+            This strategy is better, but requires more work.
+        \end{descriptimize}
+        If we are using linear filtering, there is a problem at the edges of the texel array,
+        because we need additional texel values outside the array.
+
+        There is a further complication in deciding how to use the texel values to obtain
+        a texture value: the size of the pixel we are trying to colour on the screen
+        may be smaller or larger than one texel.
+        In the first case, the texel is larger than one pixel (\concept{magnification});
+        in the second, it is smaller (\concept{minification}).
+        In both cases, the fastest strategy is to use the value of the nearest point sampling.
+
+        WebGL has another way to deal with the minification problem: \concept{mipmapping}.
+        For objects that project to an area of screen space that is small compared with the size
+        of the texel array, we do not need the resolution of the original texel array.
+        WebGL allows us to create a series of texture arrays at reduced sizes;
+        it will then automatically use the appropriate size texture in this pyramid of textures,
+        the one for which the size of the texel is approximately the size of a pixel.
+
+    \section{Environment Maps}
+      Highly reflective surfaces are characterised by specular reflections that mirror the
+      environment.
+      This effect requires global information, as we cannot shade an object correctly without
+      knowing about the rest of the scene.
+      A physically based rendering method, such as a ray tracer, can produce this image,
+      although in practice ray-tracing calculations are usually too time-consuming to be
+      practical for real-time applications.
+      We can use variants of texture mapping that can give approximate results that are
+      visually acceptable using \concept{environment maps} or \concept{reflection maps}.
+
+      We can obtain an approximately correct value using a two-step process:
+      \begin{enumerate}
+        \item Render the scene without the reflecting object, say a mirror,
+          with the camera placed at the centre of the mirror
+          pointed in the direction of the normal of the mirror.
+          Thus, we obtain an image of the objects in the environment as `seen' by the mirror.
+          This image is not quite correct, but is usually good enough.
+        \item Use this image to obtain the shades (texture values) to place on the mirror polygon
+          for the normal second rendering, with the mirror placed back in the scene.
+      \end{enumerate}
+
+      There are two difficulties with this approach:
+      \begin{itemize}
+        \item The images we obtain in the first pass are not quite correct,
+          because they have been formed without one of the objects -- the mirror --
+          in the environment.
+        \item We must confront the mapping issue: onto what surface should we project
+          the scene in the first pass, and where should we place the camera?
+      \end{itemize}
+
+      The classic approach to solve the second problem is to project the environment
+      onto a sphere centred at the centre of projection.
+      A viewer located at the centre of the sphere cannot tell whether they are seeing the
+      polygons in their original positions or their projections on the sphere.
+
+      OpenGL supports a variation of this method called \concept{sphere~mapping}.
+      The application program supplies a circular image that is the orthographic projection
+      of the sphere onto which the environment has been mapped.
+      The advantage of this method is that the mapping from the reflection vector to
+      two-dimensional texture coordinates on this circle is simple, and can be implemented
+      in either hardware or software.
+      The difficult part is obtaining the required circular image.
+
+      Another approach is to compute six projections, corresponding to the six sides of a cube,
+      using six virtual cameras located at the centre of the box, each pointing in a different
+      direction.
+      Once we have computed the six images, we can specify a cube map in OpenGL with six function
+      calls -- one for each face of a cube centred at the origin.
+      The advantage of this approach is that we can compute the environment map using the
+      standard projections that are supported by the graphics system.
+
+      These techniques are examples of \concept{multipass rendering} (or \concept{multirendering}),
+      where, in order to compute a single image, we compute multiple images, each using the
+      rendering pipeline.
+      Most of these techniques can be done within the fragment shader.
+
+    \pagebreak
+
+    \section{Bump Mapping}
+      Bump~mapping is a texture-mapping technique that can give the appearance
+      of great complexity in an image without increasing the geometric complexity.
+      Unlike simple texture mapping, bump mapping will show changes in shading as the light
+      source or object moves, making the object appear to have variations in
+      surface smoothness.
+
+      The technique of \concept{bump mapping} varies the apparent shape of the surface
+      by perturbing the normal vectors as the surface is rendered;
+      the colours that are generated by shading then show a variation in the surface properties.
+      Unlike techniques such as environment mapping that can be implemented without
+      programmable shaders, bump mapping cannot be done in real time without them.
+      In particular, because bump mapping is done on a fragment-by-fragment basis,
+      we must be able to program the fragment shader.
+
+      The texture map, called a \concept{normal map}, stores displacement (height) values.
+
+    \section{Blending (Compositing) Techniques}
+      WebGL provides a mechanism, through \concept{alpha~($\alpha$)~blending},
+      that can, among other effects, create images with translucent images.
+      The \concept{alpha~channel} is the fourth colour in RGBA colour mode.
+      Like the other colours, the application program can control the value of A ($\alpha$)
+      for each pixel.
+      However, in RGBA mode, if blending is enabled, the value of $\alpha$ controls how the
+      RGB values are written into the framebuffer.
+      Because fragments from multiple objects can contribute to the colour of the same pixel,
+      we say that these objects are \concept{blended} or \concept{composited} together.
+
+      \subsection{Opacity and Blending}
+        The \concept{opacity} of a surface is a measure of how much light penetrates
+        through that surface.
+        An opacity of 1 ($\alpha = 1$) corresponds to a completely opaque surface
+        that blocks all light incident on it.
+        A surface with an opacity of 0 is transparent; all light passes through it.
+        The \concept{transparency} or \concept{translucency} of a surface with opacity $\alpha$
+        is given by $1 - \alpha$.
+
+        In computer graphics, we usually render polygons one at a time into the framebuffer.
+        Consequently, if we want to use blending, we need a way to apply opacity as part of
+        fragment processing.
+        We can use the notion of source and destination pixels.
+
+      \subsection{Blending in WebGL (and OpenGL)}
+        To use blending in WebGL and OpenGL requires three steps:
+        \begin{enumerate}
+          \item Enable blending.
+            \begin{descriptimize}[nosep]
+              \item[WebGL] \mintinline{javascript}{gl.enable(gl.BLEND);}
+              \item[OpenGL] \mintinline{javascript}{glEnable(GL_BLENDING);}
+            \end{descriptimize}
+          \item Set up the desired source and destination factors.
+            \begin{descriptimize}[nosep]
+              \item[WebGL] \mintinline{javascript}{gl.blendFunc(sourceFactor, destinationFactor);}
+              \item[OpenGL] \mintinline{javascript}{glBlendFunc(source_factor, destination_factor);}
+            \end{descriptimize}
+          \item The application program must use RGBA colours.
+        \end{enumerate}
+
+        \pagebreak
+
+        The major difficulty with blending is that for most choices of the blending factors,
+        the order in which we render the polygons affects the final image.
+        Consequently, unlike in most WebGL programs, where the user does not have to worry
+        about the order in which the polygons are rasterized, to get a desired effect,
+        we must now control this order within the application.
+
+        A more subtle but visibly apparent problem occurs when we combine opaque and translucent
+        objects in a scene.
+        Normally, when we use blending, we do not enable hidden-surface removal,
+        because polygons behind any polygon already rendered would not be rasterized
+        and thus would not contribute to the final image.
+        In a scene with both opaque and translucent polygons, any polygon behind an opaque
+        polygon should not be rendered, but translucent polygons in front of opaque
+        polygons should be blended.
+        There is a simple solution to this problem that does not require the application program
+        to order the polygons.
+        We can enable hidden-surface removal as usual, and make the $z$-buffer read-only
+        for any polygon that is translucent.
+        We do so by calling
+        \begin{minted}[autogobble]{javascript}
+          gl.depthMask(gl.FALSE);
+        \end{minted}
+        When the depth buffer is read only, a translucent polygon is discarded when it lies
+        behind any opaque polygon that has already been rendered.
+        A translucent polygon that lies in from of any polygon that has already been rendered
+        is blended with the colour of those polygons.
+        However, because the depth-buffer is read-only for this polygon,
+        the depth values in the buffer are unchanged.
+        Opaque polygons set the depth mask to true, and are rendered normally.
+        Because the result of blending depends on the order in which we blend individual elements,
+        we may notice defects in images in which we render translucent polygons in an arbitrary
+        order.
+        If we are willing to sort the translucent polygons, then we can render all the opaque
+        polygons first, and then render the translucent polygons in a back-to-front order,
+        with the $z$-buffer in read-only mode.
+
+      \subsection{Antialiasing Revisited}
+        One of the major uses of the $\alpha$ channel is for antialiasing.
+        Because a line must have a finite width to be visible, the default width of a line
+        that is rendered should be one pixel.
+        We cannot produce a thinner line.
+        Unless the line is horizontal or vertical, such a line partially covers a number
+        of pixels in the framebuffer.
+        When rendering a line, instead of colouring an entire pixel with the colour of the line
+        if it passes through it, the amount of contribution of the line to the pixel is stored
+        in the pixel's $\alpha$ value.
+        This value is then used to calculate the intensity of the colour
+        (specified by the RGB values)
+        and avoids the sharp contrasts and steps of aliasing.
+
+      \subsection{Scene Antialiasing and Multisampling}
+        Rather than antialiasing individual lines and polygons, we can antialias the entire scene
+        using a technique called \concept{multisampling}.
+        In this mode, every pixel in the framebuffer contains a number of \concept{samples}.
+        Each sample is capable of storing a colour, depth, and other values.
+        When a scene is rendered, it is as if the scene is rendered at an enhanced resolution.
+        However, when the image must be displayed within the framebuffer,
+        all the samples for each pixel are combined to produce the final pixel colour.
+
+    \rulebookend
+
+\end{document}
