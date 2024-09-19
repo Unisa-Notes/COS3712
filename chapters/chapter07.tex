@@ -4,4 +4,74 @@
 \begin{document}
   \setcounter{chapter}{6}
   \chapter{Discrete Techniques}
+    \section{Buffers}
+      What all buffers have in common is that they are inherently discrete:
+      they have limited resolution, both spatially and in depth.
+      We can define a (two-dimensional) \concept{buffer} as block of memory with
+      $n \times m$ $k$-bit elements.
+
+      The \concept{framebuffer} is the set of buffers that the graphics system uses for rendering,
+      including the front and back colour buffers, the depth buffer, and other buffers
+      the hardware may provide.
+
+    \section{Mapping Methods}
+      One of the most powerful uses of discrete data is for surface rendering.
+      The process of modelling an object by a set of geometric primitives and then rendering
+      these primitives has its limitations.
+
+      An alternative is not to attempt to build increasingly more complex models,
+      but rather to build a simple model and to add detail as part of the rendering process.
+      As the implementation renders a surface, it generates a set of fragments,
+      each of which corresponds to a pixel in the framebuffer.
+      Fragments carry colour, depth, and other information that can be used to determine
+      how they contribute to the pixels in which they correspond.
+      As part of the rasterization process, we must assign a shade or colour to each fragment.
+      These colours can be modified during fragment processing after rasterization.
+      The mapping algorithms can be thought of as wither modifying the shading algorithm
+      based on a 2D-array, the map, or modifying the shading by using the map to alter the
+      surface using three major techniques:
+      \begin{itemize}[nosep]
+        \item Texture mapping
+        \item Bump mapping
+        \item Environment mapping
+      \end{itemize}
+
+      \begin{definition}{Texture Mapping}
+        Uses an image (or texture) to influence the colour of a fragment.
+        Textures can be specified using a fixed pattern; by a procedural texture generation
+        method; or through a digitized image.
+        In all cases, we can characterise the resulting image as the mapping of a texture
+        to a surface, which is carried out as part of the rendering of the surface.
+      \end{definition}
+
+      \begin{definition}{Bump Maps}
+        Unlike texture maps, which paint patterns onto smooth surfaces,
+        \concept{bump~maps} distort the normal vectors during the shading process to make the
+        surface appear to have small variations in shape.
+      \end{definition}
+
+      \begin{definition}{Environment Maps (Reflection Maps)}
+        Allow us to create images that have the appearance of reflected materials
+        without having to trace reflected rays.
+        An image of the environment is painted onto the surface as that surface is being
+        rendered.
+      \end{definition}
+
+      \begin{sidenote}{Similarities Between the Three Methods}
+        $ $\vspace{-1em}
+        \begin{itemize}
+          \item All three alter the shading of individual fragments as part of fragment processing.
+          \item All rely on the map being stored as a one-, two-, or three-dimensional image.
+          \item All keep the geometric complexity low while creating the illusion of complex
+            geometry.
+          \item All are subject to aliasing errors.
+        \end{itemize}
+      \end{sidenote}
+
+      Two-dimensional texture mapping is supported by WebGL.
+      Environment maps are a special case of standard texture mapping, but can be altered
+      to create a variety of new effects in the fragment shader.
+      Bump mapping requires us to process each fragment independently,
+      something we can do with a fragment shader.
+
 \end{document}
