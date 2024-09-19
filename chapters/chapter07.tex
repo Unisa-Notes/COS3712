@@ -230,4 +230,61 @@
         it will then automatically use the appropriate size texture in this pyramid of textures,
         the one for which the size of the texel is approximately the size of a pixel.
 
+    \section{Environment Maps}
+      Highly reflective surfaces are characterised by specular reflections that mirror the
+      environment.
+      This effect requires global information, as we cannot shade an object correctly without
+      knowing about the rest of the scene.
+      A physically based rendering method, such as a ray tracer, can produce this image,
+      although in practice ray-tracing calculations are usually too time-consuming to be
+      practical for real-time applications.
+      We can use variants of texture mapping that can give approximate results that are
+      visually acceptable using \concept{environment maps} or \concept{reflection maps}.
+
+      We can obtain an approximately correct value using a two-step process:
+      \begin{enumerate}
+        \item Render the scene without the reflecting object, say a mirror,
+          with the camera placed at the centre of the mirror
+          pointed in the direction of the normal of the mirror.
+          Thus, we obtain an image of the objects in the environment as `seen' by the mirror.
+          This image is not quite correct, but is usually good enough.
+        \item Use this image to obtain the shades (texture values) to place on the mirror polygon
+          for the normal second rendering, with the mirror placed back in the scene.
+      \end{enumerate}
+
+      There are two difficulties with this approach:
+      \begin{itemize}
+        \item The images we obtain in the first pass are not quite correct,
+          because they have been formed without one of the objects -- the mirror --
+          in the environment.
+        \item We must confront the mapping issue: onto what surface should we project
+          the scene in the first pass, and where should we place the camera?
+      \end{itemize}
+
+      The classic approach to solve the second problem is to project the environment
+      onto a sphere centred at the centre of projection.
+      A viewer located at the centre of the sphere cannot tell whether they are seeing the
+      polygons in their original positions or their projections on the sphere.
+
+      OpenGL supports a variation of this method called \concept{sphere~mapping}.
+      The application program supplies a circular image that is the orthographic projection
+      of the sphere onto which the environment has been mapped.
+      The advantage of this method is that the mapping from the reflection vector to
+      two-dimensional texture coordinates on this circle is simple, and can be implemented
+      in either hardware or software.
+      The difficult part is obtaining the required circular image.
+
+      Another approach is to compute six projections, corresponding to the six sides of a cube,
+      using six virtual cameras located at the centre of the box, each pointing in a different
+      direction.
+      Once we have computed the six images, we can specify a cube map in OpenGL with six function
+      calls -- one for each face of a cube centred at the origin.
+      The advantage of this approach is that we can compute the environment map using the
+      standard projections that are supported by the graphics system.
+
+      These techniques are examples of \concept{multipass rendering} (or \concept{multirendering}),
+      where, in order to compute a single image, we compute multiple images, each using the
+      rendering pipeline.
+      Most of these techniques can be done within the fragment shader.
+
 \end{document}
