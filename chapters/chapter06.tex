@@ -678,4 +678,52 @@
         If we want to continue with depth sort, we must derive the details of the intersection
         -- a calculation equivalent to clipping one polygon against the other.
 
+    \section{Antialiasing}
+      Rasterized line segments and edges of polygons look jagged.
+      This type of error arises whenever we attempt to go from the continuous representation
+      of an object, which has infinite resolution, to a sampled approximation,
+      which has limited resolution.
+      The name \concept{aliasing} has been given to this effect because of the tie
+      with aliasing in digital signal processing.
+
+      Aliasing errors are causes by three related problems with the discrete nature
+      of the framebuffer:
+      \begin{enumerate}[nosep]
+        \item If we have an $n \times m$ framebuffer, the number of pixels is fixed,
+          and we can generate only certain patterns to approximate a line segment.
+          Many different continuous line segments may be approximated by the same pattern
+          of pixels.
+          We say that all these segments are \concept{aliased} as the same sequence of pixels.
+          Given the sequence of pixels, we cannot tell which line segment generated the sequence.
+        \item Pixel locations are fixed on a uniform grid; regardless of where we would like
+          to place pixels, we cannot place them at other than evenly spaced locations.
+        \item Pixels have a fixed size and shape.
+      \end{enumerate}
+
+      If we have a display that supports more than two colours, we can solve this.
+      Although mathematical lines are one-dimensional entities that have length, but not width,
+      rasterized lines must have a width in order to be visible.
+      Our scan conversion algorithm forces us, for lines of slope less than 1,
+      to choose exactly one pixel for each value of $x$.
+      If, instead, we shade each pixel by the percentage of the ideal line that crosses it,
+      we get a smoother looking rendering.
+      This technique is known as \concept{antialiasing by area averaging}.
+      The calculation is similar to polygon clipping.
+
+      A related problem arises because of the simple way we are using the $z$-buffer algorithm.
+      With that algorithm, the colour of a pixel is determined by the shade of a single primitive.
+      If a pixel shares multiple polygons, the colour assigned to the pixel is the one
+      associated with the polygon closest to the viewer.
+      We could obtain a much more accurate image if we could assign a colour based on an
+      area-weighted average of the colours of the polygons.
+      Such algorithms can be implemented with fragment shaders on hardware with
+      floating-point framebuffers,
+      and are collectively known as \concept{spatial-domain~antialiasing}.
+
+      What is common to all antialiasing techniques is that they require considerably
+      more computation than rendering without antialiasing, although with hardware support
+      in the GPU, the penalty can be minimal.
+
+    \rulechapterend
+
 \end{document}
