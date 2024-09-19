@@ -59,7 +59,7 @@
 
       \begin{sidenote}{Similarities Between the Three Methods}
         $ $\vspace{-1em}
-        \begin{itemize}
+        \begin{itemize}[nosep]
           \item All three alter the shading of individual fragments as part of fragment processing.
           \item All rely on the map being stored as a one-, two-, or three-dimensional image.
           \item All keep the geometric complexity low while creating the illusion of complex
@@ -73,5 +73,41 @@
       to create a variety of new effects in the fragment shader.
       Bump mapping requires us to process each fragment independently,
       something we can do with a fragment shader.
+
+    \section{Two-Dimensional Texture Mapping}
+      Textures are patterns, and can be one-, two-, three, or four-dimensional.
+      Because the use of surfaces is so important in computer graphics,
+      mapping 2D textures to surfaces is by far the most common use of texture mapping.
+
+      Although there are multiple approaches to texture mapping, all require a sequence
+      of steps that involve mappings around three or four different coordinate systems:
+      \begin{descriptimize}[nosep]
+        \item[Screen coordinates.] Where the final image is produced.
+        \item[Object coordinates.] Where we describe the objects on which the textures will
+          be mapped.
+        \item[Texture coordinates.] Used to locate positions in the texture.
+        \item[Parametric coordinates.] Used to specify parametric surfaces.
+      \end{descriptimize}
+
+      In most applications, textures start out as 2D images.
+      These images are brought into processor memory as arrays.
+      We call the elements of these arrays \concept{texels (texture elements)},
+      rather than pixels, to emphasise how they will be used.
+      We prefer to think of this array as a continuous rectangular two-dimensional texture pattern
+      $T(s, t)$.
+      The independent variables $s$ and $t$ are known as \concept{texture coordinates}.
+      We can scale our texture coordinates to vary over the interval $[0.0, 1.0]$.
+
+      A \concept{texture map} associates a texel with each point on a geometric object
+      that is itself mapped to screen coordinates for display.
+
+      One way to think about texture mapping is in terms of two concurrent mappings:
+      the first from texture coordinates to object coordinates,
+      and the second from parametric coordinates to object coordinates.
+      A third mapping takes us from object coordinates to screen coordinates.
+
+      Conceptually, the texture mapping process is simple.
+      A small area of texture pattern maps to the area of the geometric surface,
+      corresponding to a pixel in the final image.
 
 \end{document}
