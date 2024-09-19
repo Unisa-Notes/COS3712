@@ -1,0 +1,729 @@
+\providecommand{\main}{..}
+\documentclass[../COS3712_Notes.tex]{subfiles}
+
+\begin{document}
+  \setcounter{chapter}{5}
+  \addtocontents{toc}{\protect\newpage}
+  \chapter{From Vertices to Fragments}
+    \begin{sidenote}{Textbook}
+      In the textbook, this section corresponds to Chapter 8: From Geometry to Pixels.
+    \end{sidenote}
+
+    \concept{Clipping} involves eliminating objects that lie outside the viewing volume,
+    and thus cannot be visible in the image.
+    \concept{Rasterization} produces fragments from the remaining objects.
+    These fragments can contribute to the final image.
+    \concept{Hidden-surface~removal} determines which fragments correspond to objects
+    that are visible, namely, those that are in the view volume and are not blocked
+    from view by other objects closer to the camera.
+
+    \section{Basic Implementation Strategies}
+      \begin{figure}
+        \begin{center}
+          \includegraphics[width=0.7\textwidth]{\main/images/chapter06/graphics_process.png}
+        \end{center}
+        \caption{High-level view of the graphics process}
+      \end{figure}
+
+      In computer graphics, we start with an application program, and end with an image.
+      We can consider this process as a black box whose inputs are the vertices and states
+      defined in the program -- geometric objects, attributes, camera specifications --
+      and whose output is an array of coloured pixels in the framebuffer.
+
+      Within the black box, we must perform many tasks, including transformations,
+      clipping, shading, hidden-surface removal, and rasterization of the primitives
+      that can appear on the display.
+      These tasks can be organised in a variety of ways, but regardless of the strategy
+      we adopt, we must always do two things:
+      \begin{enumerate}[nosep]
+        \item We must pass every geometric object through the system, and
+        \item we must assign a colour to every pixel in the colour buffer that is displayed.
+      \end{enumerate}
+
+      Suppose we think of what goes into the black box in terms of a single program
+      that carries out the entire process.
+      Because this program must assign a value to every pixel and must process every
+      geometric primitive (and light source),
+      we expect this program to contain at least two loops that iterate over these basic
+      variables.
+      The variable we choose to control the outer loop determines the flow of the entire
+      implementation process.
+      There are two fundamental strategies: the \concept{image-oriented} approach, and the
+      \concept{object-oriented} approach.
+
+      \begin{definition}{Object Oriented Approach}
+        The outer loop iterates over the objects.
+
+        A pipeline renderer fits this description.
+        Vertices are defined by the program and flow through a sequence of modules that
+        transforms them, colours them, and determines whether they are visible.
+
+        After a polygon passes through geometric processing, the rasterization
+        of this polygon can potentially affect any pixels in the framebuffer.
+
+        Most implementations that follow this approach are based on construction of a
+        rendering pipeline containing hardware or software modules for each of the tasks.
+        Data (vertices) flow \emph{forward} through the system.
+
+        In the past, the major limitations of the object-oriented approach were the
+        large amount of memory required and the high cost of processing each object
+        independently.
+        Any geometric primitive that emerges from the geometric processing can potentially
+        affect any set of pixels in the framebuffer.
+        So, the entire colour buffer, and various other buffers, must be of the size of the
+        display, and must be available at all times.
+
+        Today, the main limitation of object-oriented implementations is that they cannot
+        handle most global calculations.
+        Because each geometric primitive is processed independently
+        -- and in an arbitrary order --
+        complex shading effects that involve multiple geometric objects,
+        such as reflections,
+        cannot be handled except by approximate methods.
+        The major exception is hidden-surface removal, where the $z$-buffer is used to store
+        global information.
+      \end{definition}
+
+      \begin{definition}{Image-Oriented Approach}
+        The outer loop iterates over pixels, or rows of pixels called \concept{scan~lines},
+        that constitute the framebuffer.
+
+        For each pixel, we work \emph{backward}, trying to determine which geometric primitives
+        can contribute to its colour.
+
+        The advantages of this approach are that we need only limited display memory
+        at any time and that we can hope to generate pixels
+        at the rate and in the order required to refresh the display.
+        Because the results of most calculations do not differ from pixel to pixel
+        (or scan line to scan line),
+        we can use this coherence in our algorithms by developing incremental forms
+        for many of the steps in the implementation.
+
+        The main disadvantage of this approach is that, unless we first build a data structure
+        from the geometric data, we do not know which primitives affect which pixels.
+        Such a data structure can be complex, and may imply that all the geometric data
+        must be available at all times during the rendering process.
+        For problems with very large databases, even having a good data representation
+        may not avoid memory leaks.
+        However, because image-space algorithms have access to all objects for each pixel,
+        they are well suited to handle global effects, such as shadows and reflections.
+      \end{definition}
+
+      Within these two major categories specified by two loops, each may contain other loops.
+
+    \section{Four Major Tasks}
+      There are four major tasks that any graphics system must perform to render a geometric
+      entity, as that entity passes from definition in a user program to possible display
+      on an output device:
+      \begin{enumerate}[nosep]
+        \item Modelling
+        \item Geometry processing
+        \item Rasterization
+        \item Fragment processing
+      \end{enumerate}
+
+      \begin{definition}{Modelling}
+        The usual results of the modelling process are sets of vertices that specify
+        a group of geometric objects supported by the rest of the system.
+        We can look at the modeller as a black box that produces geometric objects
+        and is usually a user program.
+
+        There are other tasks a modeller might perform, such as clipping.
+        A user can generate geometric objects in their program,
+        and hope that the rest of the system can process these objects at the rate at which
+        they are produced, or the modeller can attempt to ease the burden on the rest of the
+        system by minimising the number of objects that it passes on.
+        The latter approach often means that the modeller may do some of the same jobs
+        as the result of the system, albeit with different algorithms.
+        In the case of clipping, the modeller knows more about the specifics of the application,
+        and can often use a good heuristic to eliminate many, if not most,
+        primitives before they are sent on through the standard viewing process.
+      \end{definition}
+
+      \begin{definition}{Geometry Processing}
+        Geometry processing works with vertices.
+        The goals of the geometry processor are to determine which geometric objects
+        appear on the display, and to assign shades or colours to the vertices of these objects.
+        Four processes are required:
+        \begin{enumerate}[nosep]
+          \item Projection
+          \item Primitive Assembly
+          \item Clipping
+          \item Shading
+        \end{enumerate}
+
+        Usually, the first step in geometry processing is to change representations
+        from object coordinates to camera coordinates using the model-view transformation.
+        The second step is to transform vertices using the projection transformation
+        to a normalised view volume in which objects that might be visible are contained
+        in a cube centred at the origin.
+        Vertices are now represented in clip coordinates.
+
+        Before clipping can take place, vertices must be grouped into objects,
+        a process known as \concept{primitive assembly}.
+        When vertices reach the rasterizer, they can no longer
+        be processed individually, but only as primitives.
+
+        After clipping takes place, the remaining vertices are still in four-dimensional
+        homogeneous coordinates.
+        Perspective division converts theme to 3D representations in normalised device coordinates.
+        Per-vertex shading is also performed during this stage.
+
+        Collectively, these operations constitute \concept{front-end~processing}.
+        All are carried out on a vertex-by-vertex basis.
+      \end{definition}
+
+      \begin{definition}{Rasterization (Scan Conversion)}
+        We need to retain depth information for hidden-surface removal.
+        But only the $x, y$ values of the vertices are needed to determine which pixels
+        in the framebuffer can be affected by the primitive.
+        To generate a set of fragments that give the locations of the pixels in the framebuffer
+        corresponding to these vertices, we only need their $x, y$ components,
+        or, equivalently, the results of the orthogonal projection of these vertices.
+        We determine these fragments through a process called \concept{rasterization}
+        or \concept{scan~conversion}.
+        For line segments, rasterization determines which fragments should be used to approximate
+        a line segment between the projected vertices.
+        For polygons, rasterization determines which pixels lie inside the 2D polygon
+        determined by the projected vertices.
+
+        The colours we assign to these fragments can be determined by the vertex attributes,
+        or obtained by interpolating the shades at the vertices that are computed.
+        Objects more complex than line segments and polygons are usually approximated
+        by multiple line segments and triangles.
+
+        The rasterizer starts with vertices in normalised device coordinates,
+        but outputs fragments whose location are in units of the display
+        -- \concept{window coordinates}.
+        The projection of the clipping volume must appear in the assigned viewport.
+        We use the term \concept{screen~coordinates} to refer to the 2D system that is the same
+        as the window coordinates, but lacks the depth coordinate.
+      \end{definition}
+
+      \begin{definition}{Fragment Processing}
+        In the simplest situations, each fragment is assigned a colour by the rasterizer,
+        and this colour is placed in the framebuffer at the locations corresponding to the
+        fragment's location.
+
+        Per-fragment shading, texture-mapping, bump-mapping, alpha blending,
+        antialiasing, and hidden-surface removal all take place in this stage.
+      \end{definition}
+
+    \section{Clipping}
+      \begin{definition}{Clipping}
+        The process of determining which primitives, or parts of primitives,
+        fit within the clipping or view volume defined by the application program.
+      \end{definition}
+
+      Clipping is done before the perspective division that is necessary if the $w$-component
+      of a clipped vertex is not equal to 1.
+      The portions of all primitives that can possibly be displayed lie within the cube
+      \begin{align*}
+        w \geq x \geq -w \\
+        w \geq y \geq -w \\
+        w \geq z \geq -w
+      \end{align*}
+      This coordinate system is called \concept{normalised device coordinates}
+      because it depends on neither the original application units nor the particulars
+      of the display device,
+      although the information to produce the correct image is retained in this coordinate system.
+      The projection has also only been carried out partially: we still need to do the
+      perspective division and the final orthographic projection.
+
+    \section{Line-Segment Clipping}
+      A \concept{clipper} determines which primitives, or parts of primitives,
+      can possibly appear on the display and be passed on the rasterizer.
+      Primitives that fit within the specified view volume pass through the clipper,
+      or are \concept{accepted}.
+      Primitives that cannot appear on the display are \concept{rejected} or \concept{culled}.
+      Primitives that are only partially within the view volume must be clipped such that
+      any part lying outside the volume is removed.
+
+      \subsection{Cohen-Sutherland Clipping}
+        We want to avoid intersection calculations with the sides of the window,
+        because each intersection calculation requires a floating point division.
+        The \concept{Cohen-Sutherland algorithm} replaces most of the expensive floating
+        point multiplications and divisions with a combination of floating point subtractions
+        and bit operations.
+
+        The algorithm starts by extending the sides of the window to infinity,
+        thus breaking up space into nine regions:
+        \begin{center}
+          \includegraphics[height=4cm]{\main/images/chapter06/cohen_sutherland.png}
+        \end{center}
+        Each region can be assigned a unique 4-bit binary number, or \concept{outcode}, $b_0 b_1 b_2 b_3$
+        as follows.
+        Suppose that $(x, y)$ is a point in the region; then
+        \begin{align*}
+          b_0 = \begin{cases}
+            1 \quad \text{if } y > y_{\text{max}}\\
+            0 \quad \text{otherwise.}
+          \end{cases}
+        \end{align*}
+        Likewise, $b_1$ is 1 if $y < y_{\text{min}}$, and $b_2$ and $b_3$ are determined similarly,
+        but for $x$.
+        For each endpoint of a line segment, we first compute the endpoint's outcode,
+        a step that can require eight floating-point subtractions per line segment.
+
+        \begin{figure}[b]
+          \begin{center}
+            \includegraphics[width=0.7\textwidth]{images/chapter06/outcode_cases.png}
+          \end{center}
+          \caption{Cases of outcodes in Cohen-Sutherland algorithm.}
+          \label{fig:cases}
+        \end{figure}
+
+        Consider a line segment whose outcodes are given by $o_1 = \text{outcode}(x_1, y_1)$ and
+        $o_2 = \text{outcode}(x_2, y_2)$.
+        We can now reason on the basis of these outcodes.
+        There are four cases:
+        \begin{enumerate}
+          \item $(o_1 = o_2 = 0)$. Both endpoints are inside the clipping window,
+            as is true for the segment~$AB$ in \autoref{fig:cases}.
+            The entire line segment is inside, and the segment can be sent on to be rasterized.
+          \item ($o_1 \neq 0, o_2 = 0$; or vice versa). One endpoint is inside the clipping window;
+            one is outside, as in segment~$CD$ in \autoref{fig:cases}.
+            The line segment must be shortened.
+            The nonzero outcode indicates which edge or edges of the window are crossed
+            by the segment.
+            One or two intersections must be computed.
+            After one segment is computed, we can compute the outcode of the point of intersection
+            to determine whether another intersection calculation is required.
+          \item ($o_1 \text{ \& } o_2 \neq 0$). Two endpoints lie on the same outside edge of the
+            window, as in segment~$EF$ in \autoref{fig:cases}.
+            Calculated by taking the bitwise \textsc{and} of the outcodes.
+            The line segment can be discarded.
+          \item ($o_1 \text{ \& } o_2 = 0$). Both edges are outside, but they are on the outside
+            of different edges of the window.
+            This is the case for segments~$GH$ and $IJ$ in \autoref{fig:cases}.
+            We cannot tell from just the outcodes whether the segment can be discarded,
+            or must be shortened.
+            The best we can do is to intersect with one of the sides of the window and to check
+            the outcode of the resulting point.
+        \end{enumerate}
+
+        With this algorithm, we do intersection calculations only when they are needed,
+        as in the second case, or where the outcodes did not contain enough information,
+        as in the fourth case.
+
+        The Cohen-Sutherland algorithm works best when there are many line segments but few
+        are actually displayed.
+        In this case, most of the line segments lie fully outside one or two of the extended
+        sides of the clipping rectangle and thus can be eliminated on the basis of their outcodes.
+        The other advantage is that this algorithm can be extended to three dimensions.
+        The main disadvantage of this algorithm is that it must be used recursively.
+
+      \subsection{Liang-Barsky Clipping}
+        If we use the parametric form for lines, we can approach the clipping of line segments
+        in a more efficient manner.
+        Suppose we have a line segment defined by the two endpoints
+        $\mathbf{p}_1 = [x_1, y_1]^{T}$ and $\mathbf{p}_2 = [x_2, y_2]^{T}$.
+        We can use these endpoints to define a unique line that we can express parametrically,
+        either in matrix form:
+        \begin{align*}
+          \mathbf{p}(\mathbf{\alpha}) = (1 - \alpha)\mathbf{p}_1 + \alpha \mathbf{p}_2
+        \end{align*}
+        or as two scalar equations
+        \begin{align*}
+          x(\alpha) = (1 - \alpha)x_1 + \alpha x_2 \\
+          y(\alpha) = (1 - \alpha)y_1 + \alpha y_2
+        \end{align*}
+        This form is robust and needs no changes for horizontal or vertical lines.
+        As the parameter $\mathbf{\alpha}$ varies from 0 to 1, we move along the segment from
+        $\mathbf{p}_1$ to $\mathbf{p}_2$.
+        Negative values give points on the other side of $\mathbf{p}_1$ from $\mathbf{p}_2$,
+        values of $\alpha > 1$ give points on the line past $\mathbf{p}_2$ going off to infinity.
+
+        Consider a line segment and the line of which it is part.
+        As long as the line is not parallel to a side of the window,
+        there are four points where the line interacts with the extended sides of the window.
+        These points correspond to the four values of the parameter: $\alpha_1$, $\alpha_2$,
+        $\alpha_3$, and $\alpha_4$.
+        One of these values corresponds to the line entering the window; another to the line
+        leaving.
+        We can order these intersections and determine which correspond to intersections
+        we need for clipping.
+
+        \begin{example}[Liang-Barsky Clipping]
+          \begin{center}
+            \captionsetup{type=figure}
+            \begin{subfigure}{0.4\linewidth}
+              \includegraphics[width=\textwidth]{\main/images/chapter06/liang_a.png}
+              \caption{Line Shown}
+              \label{fig:liang_a}
+            \end{subfigure}
+            \begin{subfigure}{0.4\linewidth}
+              \includegraphics[width=\textwidth]{\main/images/chapter06/liang_b.png}
+              \caption{Line Hidden}
+              \label{fig:liang_b}
+            \end{subfigure}
+            \caption{Two cases of a parametric line and a clipping window}
+          \end{center}
+
+          In \autoref{fig:liang_a}, we can see that
+          \begin{align*}
+            1 > \alpha_4 > \alpha_3 > \alpha_2 > \alpha_1 > 0.
+          \end{align*}
+          This means all intersections are inside the original line segment, and the two innermost
+          ($\alpha_2$~and~$\alpha_3$) determine the clipped segment.
+
+          We can distinguish this case from the case in \autoref{fig:liang_b},
+          which also has the four intersections between the endpoints of the line segment,
+          by noting that the order for this case is
+          \begin{align*}
+            1 > \alpha_4 > \alpha_2 > \alpha_3 > \alpha_1 > 0.
+          \end{align*}
+          The line intersects both the top and the bottom of the extended window before it
+          intersects either the left or the right; thus, the entire line segment must be
+          rejected.
+        \end{example}
+
+        All decisions about clipping can be made without floating point division.
+        Only if an intersection is needed (because a segment has to be shortened)
+        is the division done.
+
+        The efficiency of this approach, compared with Cohen-Sutherland, is that we avoid
+        multiple shortenings of line segments and related re-executions of the clipping
+        algorithm.
+
+    \section{Rasterization}
+      Line segments and polygons are defined by vertices.
+      We can assume that we have clipped the primitives such that each remaining primitive
+      is within the view volume.
+
+      \concept{Fragments} are potential pixels.
+      Each fragment has a colour attribute and a location in screen coordinates
+      that corresponds to a location in the colour buffer.
+
+      We further assume that the colour buffer is an $n \times m$~array of pixels,
+      with $(0, 0)$ corresponding to the lower-left corner.
+      Pixels can be set to a given colour by a single function inside the graphics implementation
+      of the form
+      \begin{minted}[autogobble]{javascript}
+        var writePixel(ix, iy, value);
+      \end{minted}
+
+      Pixels have attributes that are colours in the colour buffer.
+      Pixels can be displayed in multiple shapes and sizes that depend on the characteristics
+      of the display.
+
+      The simplest scan conversion algorithm for line segments is the \concept{DDA~algorithm},
+      after the digital differential analyzer.
+      Because a line satisfies the differential equation $dy/dx = m$, where $m$ is the slope,
+      generally a line segment is equivalent to solving a simple differential equation
+      numerically.
+
+      \begin{definition}{DDA Algorithm}
+        Suppose we have a line segment defined by the endpoints $(x_1, y_1)$ and $(x_2, y_2)$.
+        Because we are working in a colour buffer, we assume these values have been rounded
+        to integer values, so the line segment starts and ends at a known pixel.
+        The slope is given by
+        \begin{align*}
+          m = \frac{y_2 - y_1}{x_2 - x_1} = \frac{\Delta y}{\Delta x}.
+        \end{align*}
+        We assume that
+        \begin{align*}
+          0 \leq m \leq 1
+        \end{align*}
+        We can handle other values of $m$ using symmetry.
+
+        This algorithm is based on writing a pixel for each value of \texttt{ix} in
+        \texttt{write\_pixel} as $x$ goes from $x_1$ to $x_2$.
+        If we are on the line segment, for any change in $x$ equal to $\Delta x$,
+        the corresponding change in $y$ must be
+        \begin{align*}
+          \Delta y = m \Delta x
+        \end{align*}
+        As we move from $x_1$ to $x_2$, we increase $x$ by 1 in each iteration,
+        so we must increase $y$ by $m$.
+        Although each $x$ is an integer, each $y$ is not, because $m$ is a floating point number,
+        and we must round it to find the appropriate pixel.
+
+        The algorithm in pseudocode is
+        \begin{minted}[autogobble]{javascript}
+          for (ix = x1, ix <= x2; ++ix) {
+            y += m;
+            writePixel(x, round(y), line_color);
+          }
+        \end{minted}
+        where \mintinline{javascript}{round} is function that rounds a real number to an integer.
+
+        For large slopes, the separation between pixels that are coloured can be large,
+        generating an unacceptable approximation to the line segment.
+        To solve this, for slopes greater than 1, we swap the roles of $x$ and $y$.
+      \end{definition}
+
+    \section{Bresenham's Algorithm}
+      The DDA algorithm requires a floating-point addition for each pixel generated.
+      Bresenham derived a line rasterization algorithm that avoids all floating-point calculations
+      and has become the standard algorithm used in hardware and software rasterizers.
+
+      The calculation of each successive pixel in the colour buffer requires only an addition
+      and a sign test.
+
+    \section{Polygon Rasterization}
+      One of the major advantages that the first raster systems brought to users
+      was the ability to display filled polygons.
+
+      Flat simple polygons have well-defined interiors.
+      If they are also convex, they are guaranteed to be rendered correctly by OpenGL.
+
+      \subsection{Inside-Outside Testing}
+        The only type of polygon supported by WebGL is a triangle.
+        For non-flat polygons, we can work with their projections, or we can use
+        the first three vertices to determine a plane to use for the interior.
+        Conceptually, the process of filling the inside of a polygon with a colour or pattern
+        is equivalent to deciding which points in the plane of the polygon are interior (inside)
+        points.
+        There are two tests used to make inside-outside decisions:
+        \begin{itemize}[nosep]
+          \item the \concept{crossing} or \concept{odd-even test}, and
+          \item the \concept{winding test}.
+        \end{itemize}
+
+        \begin{definition}{Crossing (Odd-Even) Test}
+          The most widely used test for making inside-outside decisions.
+
+          Suppose that $\mathbf{p}$ is a point inside a polygon.
+          Any ray emanating from $\mathbf{p}$ and going to infinity must cross an odd number
+          of edges.
+          Any ray emanating from a point outside the polygon and entering the polygon
+          crosses an even number of edges before reaching infinity.
+          Hence, a point can be defined as being inside if after drawing a line through it
+          and following this line, starting on the outside, we cross an odd number of edges
+          before reaching it.
+
+          Odd-even testing is easy to implement, and integrates well with the standard rendering
+          algorithms.
+          Usually, we replace rays through points with scan lines, and we count the crossing
+          of polygon edges to determine inside and outside.
+        \end{definition}
+
+        \begin{definition}{Winding Test}
+          Considers the polygon as a knot being wrapped around a point or a line.
+
+          To implement the test, we consider traversing the edges of the polygon from any
+          starting vertex, and going around the edge in a particular direction until we
+          reach the starting point.
+
+          Next, we consider an arbitrary point.
+          The \concept{winding~number} for this point is the number of times it is encircled
+          by the edges of the polygon.
+          We count clockwise encirclements as positive, and counterclockwise encirclements
+          as negative (or vice versa).
+          Points are inside the polygon if its winding number is not zero.
+        \end{definition}
+
+      \subsection{WebGL and Concave Polygons}
+        Because WebGL renders only triangles that are flat and convex,
+        we still have the problem of what to do with more general polygons.
+        One approach is to work with the application to ensure that they only generate triangles.
+        Another is to provide software that can tessellate a given polygon into triangles.
+        A good tessellation should not produce triangles that are long and thin;
+        it should produce triangles that can use supported features, such as triangle strips
+        and triangle fans.
+
+      \subsection{Fill and Sort}
+        A different approach to rasterization of polygons starts with the idea of a
+        \concept{polygon~processor}: a black box whose inputs are the vertices
+        for a set of 2D polygons, and whose output is a framebuffer with the correct pixels set.
+        This conceptual algorithm indicates that polygon fill is a sorting problem,
+        where we sort all the pixels in the framebuffer into those that are inside the polygon
+        and those that are not.
+        From this perspective, we obtain different polygon fill algorithms using different ways
+        of sorting the points:
+        \begin{itemize}[nosep]
+          \item Flood fill
+          \item Scan line fill
+          \item Odd-even fill
+        \end{itemize}
+
+      \subsection{Flood Fill}
+        We can display an unfilled polygon by rasterizing its edges into the framebuffer
+        using Bresenham's algorithm.
+        Suppose we have only two colours: a background colour and a foreground colour.
+        We can use the foreground colour to rasterize the edges.
+        If we can find an initial point $(x, y)$ inside the polygon -- a \concept{seed~point} --
+        then we can look at its neighbours recursively, colouring them with the
+        foreground colour if they are not edge points.
+
+        We can obtain a number of variants of flood fill by removing the recursion.
+        One way to do so is to work one scan line at a time.
+
+      \subsection{Singularities}
+        We can extend most polygon fill algorithms to other shapes.
+        Polygons have the distinct advantage that the locations of their edges are known exactly.
+        Even polygons can present problems when their vertices lie on scan lines.
+
+        We can fix these problems by preventing the special case of a vertex lying on an edge
+        -- a \concept{singularity} -- from ever arising.
+        We rule it out by ensuring that no vertex has an integer $y$ value.
+        Another method is to consider a virtual framebuffer of twice the resolution of the
+        real framebuffer.
+        In the virtual framebuffer, pixels are located only at even values of $y$,
+        and all vertices are located only at odd values of $y$.
+        Placing pixel centres halfway between integers, as OpenGL does,
+        is equivalent to using this approach.
+
+    \section{Hidden-Surface Removal}
+      Although every fragment generated by rasterization corresponds to a location in a
+      colour buffer, we do not want to display the fragment by colouring the corresponding pixel
+      if the fragment is from an object behind another opaque object.
+      Hidden-surface removal is done to discover what part, if any, of each object in the
+      view volume is visible to the viewer, or is obscured from the viewer by other objects.
+
+      \subsection{Scan Line Algorithms}
+        The attraction of a \concept{scan line algorithm} is that such a method has the potential
+        to generate pixels as they are displayed.
+        We can see groups of pixels, or \concept{spans}, on a scan line, that are inside
+        the polygon.
+        Each span can be processed individually for lighting or depth calculations.
+
+        The spans are determined by the set of intersections of polygons with scan lines.
+        There are different algorithms for determining the order of the scan-line intersections.
+
+      \subsection{Back-Face Removal}
+        For situations where we cannot see back faces, we can reduce the work required
+        for hidden-surface removal by eliminating all back-facing polygons before we apply
+        other hidden-surface removal algorithms.
+
+        We see the front of a polygon if the normal, which comes out of the front face,
+        is pointed toward the viewer.
+        If $\theta$ is the angle between the normal and the viewer,
+        then the polygon is facing forward if and only if
+        \begin{align*}
+          - 90^\circ \leq \theta \leq 90^\circ
+        \end{align*}
+        or equivalently
+        \begin{align*}
+          \cos\theta \geq 0.
+        \end{align*}
+        The second condition is easier to test because, instead of computing the cosine,
+        we can use the dot product:
+        \begin{align*}
+          \mathbf{n} \cdot \mathbf{v} \geq 0.
+        \end{align*}
+        Usually, culling is performed after the transformation to normalised device coordinates.
+
+      \subsection{The \texorpdfstring{$z$}{z}-Buffer Algorithm}
+        The \concept{$z$-buffer algorithm} is the most widely used hidden-surface removal
+        algorithm.
+        It has the advantages of being easy to implement in either hardware or software,
+        and of being compatible with pipeline architectures, where it can execute at the speed
+        at which fragments are passing through the pipeline.
+        Although the algorithm works in image space, it loops over the polygons rather
+        than the pixels, and can be regarded as part of the scan conversion process.
+
+        The \concept{$z$-buffer} is a buffer which usually has the same spatial resolution
+        as the colour buffer, and before each scene rendering, each of its elements is
+        initialised to a depth corresponding to the maximum distance away from the
+        centre of projection.
+        At any time during rasterization and fragment processing, each location in the
+        $z$-buffer contains the distance along the ray corresponding to the location
+        of the closest intersection point on any polygon found so far.
+
+        Rasterization is done polygon by polygon.
+        For each fragment on the polygon corresponding to the intersection of the polygon
+        with a ray through a pixel, we compute the depth from the centre of projection.
+        We compare this depth to the value in the $z$-buffer corresponding to this fragment.
+        If this depth is greater than the depth in the $z$-buffer, then we have already
+        processed a polygon with a corresponding fragment closer to the viewer,
+        and this fragment is not visible.
+        If the depth is less than the depth in the $z$-buffer, then we have found a fragment
+        closer to the viewer.
+        We update the depth in the $z$-buffer and place the shade computed for this fragment
+        at the corresponding location in the colour buffer.
+
+        The $z$-buffer algorithm works well with image-oriented approaches to implementation
+        because the amount of incremental work is small.
+        Although the worst-case performance of an image-space algorithm is proportional
+        to the number of primitives, the performance of the $z$-buffer algorithm is proportional
+        to the number of fragments generated by rasterization, which depends on the area
+        of the rasterized polygons.
+
+      \subsection{Depth Sort and the Painter's Algorithm}
+        Although image-space methods are dominant in hardware due to the efficiency and ease of
+        implementation of the $z$-buffer algorithm, often object-space methods are used within
+        the application to lower the polygon count.
+
+        \concept{Depth~sort} is a direct implementation of the object-space approach
+        to hidden-surface removal.
+        It is a variant of a simpler algorithm known as the \concept{painter's~algorithm}.
+
+        Suppose we have a collection of polygons that is sorted based on their distance
+        from the viewer.
+        To render the scene correctly, we could find the part of the rear polygon
+        that is visible and render that part into the framebuffer
+        -- a calculation that requires clipping one polygon against the other.
+        Or we could use an approach analogous to the way a painter might render the scene:
+        paint the rear polygons first, and then the front polygons on top of those.
+        Both polygons would be rendered completely, with the hidden-surface removal
+        being done as a consequence of the \concept{back-to-front~rendering} of the polygons.
+
+        Suppose we have already computed the $z$-extent of each polygon.
+        The next step of depth sort is to order all polygons by their maximum $z$-distance
+        from the viewer.
+        If no two polygons' $z$-extents overlap, we can paint the polygons back to front and we
+        are done.
+        If the $z$-extents of two polygons overlap, we may still be able to find an order to
+        render the polygons individually and yield the correct image.
+        The depth-sort algorithm runs a number of increasingly more difficult tests,
+        attempting to find such an ordering.
+
+        Two troublesome situations remain.
+        If three or more polygons overlap cyclically, there is not correct order for painting.
+        The best we can do is to divide at least one of the polygons into two parts,
+        and attempt to find an order to paint the new set of polygons.
+        The second problematic case arises if a polygon can pierce another polygon.
+        If we want to continue with depth sort, we must derive the details of the intersection
+        -- a calculation equivalent to clipping one polygon against the other.
+
+    \section{Antialiasing}
+      Rasterized line segments and edges of polygons look jagged.
+      This type of error arises whenever we attempt to go from the continuous representation
+      of an object, which has infinite resolution, to a sampled approximation,
+      which has limited resolution.
+      The name \concept{aliasing} has been given to this effect because of the tie
+      with aliasing in digital signal processing.
+
+      Aliasing errors are causes by three related problems with the discrete nature
+      of the framebuffer:
+      \begin{enumerate}[nosep]
+        \item If we have an $n \times m$ framebuffer, the number of pixels is fixed,
+          and we can generate only certain patterns to approximate a line segment.
+          Many different continuous line segments may be approximated by the same pattern
+          of pixels.
+          We say that all these segments are \concept{aliased} as the same sequence of pixels.
+          Given the sequence of pixels, we cannot tell which line segment generated the sequence.
+        \item Pixel locations are fixed on a uniform grid; regardless of where we would like
+          to place pixels, we cannot place them at other than evenly spaced locations.
+        \item Pixels have a fixed size and shape.
+      \end{enumerate}
+
+      If we have a display that supports more than two colours, we can solve this.
+      Although mathematical lines are one-dimensional entities that have length, but not width,
+      rasterized lines must have a width in order to be visible.
+      Our scan conversion algorithm forces us, for lines of slope less than 1,
+      to choose exactly one pixel for each value of $x$.
+      If, instead, we shade each pixel by the percentage of the ideal line that crosses it,
+      we get a smoother looking rendering.
+      This technique is known as \concept{antialiasing by area averaging}.
+      The calculation is similar to polygon clipping.
+
+      A related problem arises because of the simple way we are using the $z$-buffer algorithm.
+      With that algorithm, the colour of a pixel is determined by the shade of a single primitive.
+      If a pixel shares multiple polygons, the colour assigned to the pixel is the one
+      associated with the polygon closest to the viewer.
+      We could obtain a much more accurate image if we could assign a colour based on an
+      area-weighted average of the colours of the polygons.
+      Such algorithms can be implemented with fragment shaders on hardware with
+      floating-point framebuffers,
+      and are collectively known as \concept{spatial-domain~antialiasing}.
+
+      What is common to all antialiasing techniques is that they require considerably
+      more computation than rendering without antialiasing, although with hardware support
+      in the GPU, the penalty can be minimal.
+
+    \rulechapterend
+
+\end{document}
