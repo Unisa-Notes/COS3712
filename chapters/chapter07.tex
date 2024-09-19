@@ -110,4 +110,136 @@
       A small area of texture pattern maps to the area of the geometric surface,
       corresponding to a pixel in the final image.
 
+    \section{Texture Mapping in WebGL}
+      WebGL's texture maps rely on its pipeline architecture.
+      There are two parallel pipelines: the geometric pipeline, and the pixel pipeline.
+      For texture mapping, the pixel pipeline merges with fragment processing after rasterization.
+      This architecture determines the type of texture mapping that is supported.
+      In particular, texture mapping is done as part of fragment processing.
+      Each fragment that is generated can then be tested for visibility with the $z$-buffer.
+      We can think of texture mapping as part of the shading process, but a part that is done
+      on a fragment-by-fragment basis.
+
+      Texture coordinates are handled much like normals and colours.
+      They can be associated with vertices as an additional vertex attribute,
+      and the required texture values can be obtained by the rasterizer interpolating
+      the texture coordinates at the vertices across polygons.
+      They can also be generated in one of the shaders.
+
+      \begin{figure}
+        \begin{center}
+          \includegraphics[width=0.8\textwidth]{\main/images/chapter07/two_pipelines.png}
+        \end{center}
+        \caption{Pixel and geometry pipelines.}
+      \end{figure}
+
+      Texture mapping requires interaction among the application program, the vertex shader,
+      and the fragment shader.
+      There are three basic steps:
+      \begin{enumerate}
+        \item Form a texture image and place it in texture memory on the GPU.
+        \item Assign texture coordinates to each fragment.
+        \item Apply the texture to each fragment.
+      \end{enumerate}
+
+      \subsection{Texture Objects}
+        In early versions of OpenGL, there was only a single texture,
+        the \concept{current texture}, that existed at any time.
+        Each time a different texture was needed, we had to set up a new texture map.
+
+        \concept{Texture~objects} allow the application program to define objects that consist
+        of the texture array and the various texture parameters that control its application
+        to surfaces.
+        As long as there is sufficient memory to retain them, these objects reside in the
+        texture memory in the GPU.
+
+        \begin{sidenote}{New Way of Creating Textures}
+          For a single texture, we start by creating a texture object:
+          \begin{minted}[autogobble]{javascript}
+            var texture = gl.createTexture();
+          \end{minted}
+          and then bind it as the current 2D texture object by executing
+          \begin{minted}[autogobble]{javascript}
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+          \end{minted}
+          Subsequent texture function specify the texture image and its parameters,
+          which become part of this texture object.
+          We can delete an unused texture object with the function
+          \mintinline{javascript}{gl.deleteTexture}.
+        \end{sidenote}
+
+        \begin{sidenote}{Old Way of Creating Textures}
+          $ $\vspace{-1em}
+          \begin{enumerate}
+            \item Get some unused texture identifiers by calling
+              \mintinline{javascript}{glGenTextures();}.
+            \item Bind the texture object (\mintinline{javascript}{glBindTexture()}) to make
+              it the current texture object.
+            \item Use texture functions to specify the texture image and its parameters,
+              which become part of the current texture object.
+          \end{enumerate}
+        \end{sidenote}
+
+      \subsection{Texture Coordinates and Samplers}
+        The key element in applying a texture in the fragment shader is the mapping
+        between the location of a fragment and the corresponding location within the texture image
+        where we will get the texture colour for that fragment.
+        Because each fragment has a location in the framebuffer that is one of its attributes,
+        we need not refer to this position explicitly in the fragment shader.
+        The potential difficulty is identifying the desired location in the texture image.
+
+        We use two floating point texture coordinates, $s$ and $t$,
+        both of which range over the interval $[0.0, 1.0]$ as we traverse the texture image.
+        It is up to the application and the shaders to determine the appropriate texture
+        coordinates for a fragment.
+        The most common method is to treat texture coordinates as a vertex attribute.
+        Thus, we could provide texture coordinates just as we provide vertex colours
+        in the application.
+        We would then pass these coordinates to the vertex shader and let the rasterizer
+        interpolate the vertex texture coordinates to fragment texture coordinates.
+
+        The vertex shader is only concerned with the texture coordinates,
+        and has nothing to do with the texture object we created earlier.
+
+        The key to putting everything together is a new type of variable called a \concept{sampler},
+        which we usually only use in a fragment shader.
+        A sampler variable provides access to a texture object, including all its parameters.
+        There are two types of sampler variables for the types of textures supported in WebGL:
+        \begin{itemize}
+          \item the two-dimensional (\mintinline{javascript}{sampler2D}), and
+          \item the cube map (\mintinline{javascript}{samplerCube}).
+        \end{itemize}
+        What a sampler does is return a value or sample of the texture image
+        for the input texture coordinates.
+
+      \subsection{Texture Sampling}
+        Aliasing of textures is a major problem.
+        When we map texture coordinates to the array of texels, we rarely get a point
+        that corresponds to the centre of a texel.
+        There are two options:
+        \begin{descriptimize}
+          \item[Point Sampling] Use the value of the texel that is closest to the texture
+            coordinate output by the rasterizer.
+            This option has the most visible aliasing errors.
+          \item[Linear Filtering] Use a weighted average of a group of texels in the neighbourhood
+            of the texel determined by point sampling.
+            This strategy is better, but requires more work.
+        \end{descriptimize}
+        If we are using linear filtering, there is a problem at the edges of the texel array,
+        because we need additional texel values outside the array.
+
+        There is a further complication in deciding how to use the texel values to obtain
+        a texture value: the size of the pixel we are trying to colour on the screen
+        may be smaller or larger than one texel.
+        In the first case, the texel is larger than one pixel (\concept{magnification});
+        in the second, it is smaller (\concept{minification}).
+        In both cases, the fastest strategy is to use the value of the nearest point sampling.
+
+        WebGL has another way to deal with the minification problem: \concept{mipmapping}.
+        For objects that project to an area of screen space that is small compared with the size
+        of the texel array, we do not need the resolution of the original texel array.
+        WebGL allows us to create a series of texture arrays at reduced sizes;
+        it will then automatically use the appropriate size texture in this pyramid of textures,
+        the one for which the size of the texel is approximately the size of a pixel.
+
 \end{document}
