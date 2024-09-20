@@ -294,9 +294,74 @@
         \end{itemize}
       \end{sidenote}
 
-    \pagebreak
+      \begin{sidenote}[title after break={Commonly Used 3D Primitives (Continued)}]{Commonly Used 3D Primitives}
+        $ $\vspace{-1em}
+        \begin{descriptimize}
+          \item[Points] The simplest form of a 3D primitive.
+            Represent a single position in 3D space, and have no size or shape.
+            Typically used as reference coordinates,
+            or as building blocks for constructing other geometric objects.
+          \item[Lines and Line Segments] Defined by two points in 3D space.
+            A line extends infinitely in both directions, while a line segment has a finite length
+            between two endpoints.
+            Used to represent edges or boundaries of objects.
+            \pagebreak
+          \item[Polygons] Flat, two-dimensional shapes composed of straight line segments.
+            Used to create surfaces and faces of objects.
+            Triangles and quadrilaterals are the most commonly used polygon types.
+          \item[Cubes and Boxes] Three dimensional objects with six square faces,
+            all of equal size.
+            Often used as basic building blocks for constructing more complex objects.
+          \item[Spheres] Perfectly round objects with all points on the surface equidistant
+            from a central point.
+            Defined by their centre point and radius.
+          \item[Cylinders] Tube-like objects with circular bases at both ends and a curved surface
+            connecting them.
+            Defined by their base centre points, radii, and height.
+          \item[Cones] Similar to cylinders, but have a single circular base and a curved surface
+            that tapers to a point called the apex.
+            Defined by their base centre point, radius, and height.
+        \end{descriptimize}
+      \end{sidenote}
 
     \section{Frames in WebGL}
+      \concept{Coordinates} are used to specify the position of a point in a given space.
+      They define a reference system or coordinate system that provides a framework
+      for measuring and locating points.
+
+      \begin{definition}{Frame}
+        Also known as a \concept{reference frame} or \concept{coordinate frame}.
+
+        An abstract construct used to define the orientation and position of objects
+        within a space.
+        It consists of a coordinate system, along with an origin point and a set of basis vectors.
+        The basis vectors, typically orthogonal to each other, define the directions
+        of the coordinate axes.
+      \end{definition}
+
+      In 2D graphics, a frame is defined by an origin point and two basis vectors
+      (often referred to as the $u$-axis and $v$-axis).
+      In 3D graphics, a frame is defined by an origin point and three basis vectors
+      (often referred to as the $x$-axis, $y$-axis, and $z$-axis).
+      These basis vectors determine the orientation and alignment of the coordinate axes
+      within the space.
+
+      Frames allow us to describe the position, orientation, and transformations of objects
+      relative to a specific reference system.
+      By applying transformations to the basis vectors and origin point of a frame,
+      we can change its position, rotation, and scale, thereby affecting the objects
+      attached to that frame.
+
+      The application programmer usually works with two frames: the \concept{model frame}
+      and the \concept{view frame}.
+      Because there is an affine transformation that corresponds to each change of frame,
+      there are $4 \times 4$ matrices that represent the transformation from model coordinates
+      to world coordinates, and from world coordinates to eye coordinates.
+      These transformations are usually concatenated together into the
+      \concept{model-view transformation}, which is specified by the model-view matrix.
+
+      \pagebreak
+
       \begin{sidenote}{Order of Frames in the Pipeline}
         Note that the names have changed between the versions, for the first two.
 
@@ -342,15 +407,6 @@
         \end{descriptenum}
       \end{sidenote}
 
-      The application programmer usually works with two frames: the \concept{model frame}
-      and the \concept{view frame}.
-      By concatenating the transformation that takes the model frame to the object frame
-      with the transformation that takes the object frame to the eye frame,
-      we form the model-view matrix that positions objects relative to the eye frame.
-
-      In WebGL, we can set a model-view matrix by sending an array of 16~elements to the
-      vertex shader.
-
     \section{Modelling a Coloured Cube}
       \begin{sidenote}{Order of Vertices}
         We have to be careful about the order in which we specify our vertices
@@ -367,6 +423,10 @@
       \begin{definition}{Transformation}
         A \concept{transformation} is a function that takes a point (or vector)
         and maps it into another point (or vector).
+      \end{definition}
+
+      \begin{definition}{Affine Space}
+        An extension of the vector pace that includes an additional type of object: the point.
       \end{definition}
 
       If we use homogeneous coordinate representations, we can represent both vectors and points
@@ -407,6 +467,8 @@
       No combination of rotations and translations can alter the shape or volume of an object:
       they can alter only the object's location and orientation.
 
+      \pagebreak
+
       \begin{definition}{Scaling}
         An affine non-rigid-body transformation by which we can make an object bigger or smaller.
 
@@ -426,6 +488,20 @@
         \end{descriptimize}
       \end{definition}
 
+      \begin{definition}{Shearing}
+        A transformation that slants or skews an object along one or more axes.
+        It involves modifying the coordinates of points by a certain proportion
+        in relation to their position along other axes.
+        Shearing can by applied independently along the $x$-axis, $y$-axis, or both.
+      \end{definition}
+
+      \begin{definition}{Reflection}
+        Involves creating a mirror image of an object across a line or plane called the mirror axis.
+        It can be performed along any line or plane, including the $x$-axis, $y$-axis,
+        or an arbitrary line or plane defined by equations.
+        Reflection changes the orientation of the object while preserving its shape.
+      \end{definition}
+
     \section{Transformations in Homogeneous Coordinates}
       Within a frame, each affine transformation is represented by a $4 \times 4$ matrix of the form
       \begin{align*}
@@ -438,6 +514,8 @@
       \end{align*}
       The final row of the matrix does not depend on a particular transformation,
       but rather forces the fourth component of the transformation to retain the value 1.
+
+      \pagebreak
 
       \subsection{Translation}
         Translation displaces points to new positions defined by a displacement vector.
@@ -523,8 +601,6 @@
             \end{bmatrix}
           \end{align*}
         \end{theorem}
-
-        \pagebreak
 
         \begin{theorem}{Inverse Rotation Matrix}
           A rotation by $\theta$ can always be undone by a subsequent rotation by $-\theta$.
@@ -633,8 +709,6 @@
         \begin{align*}
           \mathbf{R} = \mathbf{R}^{-1}_x \mathbf{R}^{-1}_y \mathbf{R}_z(\theta) \mathbf{R}_y \mathbf{R}_x
         \end{align*}
-
-    \pagebreak
 
     \section{Transformation Matrices in WebGL}
       In a modern implementation of OpenGL, the application programmer can choose not only
