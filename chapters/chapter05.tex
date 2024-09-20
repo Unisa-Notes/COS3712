@@ -74,7 +74,7 @@
         \end{align*}
         each of whose components is the intensity of the independent red, green, and blue components.
 
-        There are four basic types of sources:
+        Some common types of light sources are:
         \begin{descriptenum}
           \item[Ambient Light] Lights that are designed and positioned to provide uniform
             illumination throughout the room.
@@ -82,10 +82,14 @@
             that is identical at every point in the scene.
             Although every point in our scene receives the same illumination from $\mathbf{I}_a$,
             each surface can reflect this light differently.
+            Helps provide a base level of illumination, and contributes to the overall
+            brightness and visibility of objects in the absence of direct light sources.
           \item[Point Sources] An ideal \concept{point source} emits light equally
             in all directions.
             The intensity of illumination received from a point source is proportional to the
             inverse square root of the distance between the source and surface.
+            Can create shard shadows and are used to simulate light sources such as light bulbs
+            or small light fixtures.
           \item[Spotlights] Characterised by a narrow range of angles through which light is
             emitted.
             We can construct a simple spotlight from a point source by limiting the angles
@@ -93,13 +97,30 @@
             More realistic spotlights are characterised by the distribution of light
             within the cone, usually with most of the light concentrated in the
             centre of the cone.
+            Has a position, direction, and cufoff angle that determines the spread of the light.
+            Can create focussed or spotlight effects, and are often used to simulate
+            flashlights or stage lighting.
+            Cast soft-edged shadows and fave an adjustable falloff or attenuation of light intensity
+            with distance from the source.
           \item[Distant Light] If the light source is far from the surface, the vector
             does not change much as we move from point to point.
             All rays are parallel, and we replace the location (point) of the light source
             with the direction (vector) of the light.
+            Also known as a \concept{directional light}, \concept{infinite light},
+            or \concept{parallel light}.
+            Used to simulate light sources like the sun.
+            They produce consistent lighting across the entire scene, and do not attenuate
+            with distance, resulting in shadows with sharp, well-defined edges.
+          \item[Area Light] Represents a light-emitting surface rather than a single point or
+            direction.
+            Has a finite size and emits light from its entire surface.
+            Can simulate sources like rectangular panels, emissive objects, or large light fixtures.
+            They produce soft shadows and can create realistic lighting effects with more
+            natural falloff and softer illumination.
         \end{descriptenum}
 
     \section{The Phong Reflection Model}
+      \label{sec:phong-reflection}
       The Phong model uses four vectors to calculate a colour for an arbitrary point $\mathbf{p}$
       on a surface.
       \begin{descriptimize}[nosep]
@@ -298,7 +319,7 @@
       A polygonal mesh comprises many flat polygons, each of which has a well-defined normal.
       There are three ways to shade these polygons:
       \begin{descriptimize}
-        \item[Flat Shading (Constant Shading)] If the three vectors are constant,
+        \item[Flat Shading (Constant/Faceted Shading)] If the three vectors are constant,
           then the shading calculation needs to be carried out only once for each polygon,
           and each point on the polygon is assigned the same shade.
 
@@ -310,6 +331,26 @@
           If we see an increasing sequence of intensities, we perceive the increases in brightness
           as overshooting on one side of an intensity step, and undershooting on the other.
           We see stripes, known as \concept{Mach~bands}, along the edges.
+          \begin{sidenote}{Flat Shading Process}
+            $ $\vspace{-1em}
+            \begin{descriptenum}
+              \item[Vertex Colour Calculation] For each vertex of a polygon, the shading algorithm
+                calculates the colour or intensity value based on lighting and material properties.
+                The calculation typically involves the Phong reflection model or similar lighting models,
+                considering ambient, diffuse, and specular reflections.
+                The vertex colour represents the shading value at each vertex.
+              \item[Colour Interpolation] Once the vertex colours are determined,
+                the shading values are interpolated across the polygon's surface.
+                The same shading value calculated at the vertices is assigned to all pixels
+                within the polygon.
+              \item[Rasterization] The interpolated shading value is rasterized to the pixels
+                within the polygon.
+                The rasterization process determines which pixels are covered by the polygon,
+                and assigns the same shading value to all the pixels within the polygon.
+              \item[Rendering] The rendered polygon is displayed on the screen or stored in a
+                framebuffer with the same shading value for all pixels within the polygon.
+            \end{descriptenum}
+          \end{sidenote}
         \item[Goraud Shading (Smooth Shading)] The lighting calculation is made at each vertex
           using the material properties, and the vectors $\mathbf{n}$, $\mathbf{v}$
           and $\mathbf{l}$ are computed for each vertex.
@@ -326,6 +367,32 @@
 
           In \concept{Goraud shading}, we define the normal at a vertex to be the normalised
           average of the normals of the polygons that share the vertex.
+          \pagebreak
+          \begin{sidenote}{Goraud Shading Process}
+            $ $\vspace{-1em}
+            \begin{descriptenum}
+              \item[Vertex Colour Calculation] For each vertex of a polygon, the shading algorithm
+                calculates the colour or intensity value based on lighting and material properties.
+                The calculation typically involves the Phong reflection model or similar lighting models,
+                considering ambient, diffuse, and specular reflections.
+                The vertex colour represents the shading value at each vertex.
+              \item[Interpolation] Once the vertex colours are determined,
+                the shading values are interpolated across the polygon's surface.
+                The interpolation process calculates the colour or intensity at each pixel
+                within the polygon by blending the shading values of the vertices that surround
+                that pixel.
+                This interpolation can be performed using various algorithms,
+                such as linear interpolation or barycentric interpolation.
+              \item[Rasterization] The interpolated shading value is rasterized to the pixels
+                within the polygon.
+                The rasterization process determines which pixels are covered by the polygon,
+                and assigns the corresponding shading value to those pixels.
+              \item[Rendering] The rendered polygon is displayed on the screen or stored in a
+                framebuffer with the interpolated shading values.
+                The resulting image shows a smooth gradient of colours or intensities
+                across the polygon's surface.
+            \end{descriptenum}
+          \end{sidenote}
         \item[Phong Shading] Instead of interpolating vertex intensities, we interpolate
           normals across each polygon.
           We can compute vertex normals by interpolating over the normals of the polygons
@@ -334,6 +401,35 @@
           We make an independent lighting calculation for each fragment.
           We implement Phong shading in the fragment shader, and it is also known as
           \concept{per-fragment shading}.
+          \begin{sidenote}{Phong Shading Technique}
+            $ $\vspace{-1em}
+            \begin{descriptenum}
+              \item[Vertex Normal Calculation] For each vertex of a polygon,
+                the shading algorithm calculates the surface normal, which is a vector
+                perpendicular to the surface of that vertex.
+                The surface normal is essential for determining how light interacts with the
+                surface.
+                The vertex normals can be calculated based on the polygon's geometry
+                or derived from vertex normals provided by 3D modelling software.
+              \item[Interpolation of Vertex Normals] The vertex normals are interpolated
+                across the polygon's surface to calculate a smooth normal value for each pixel
+                within the polygon.
+                The interpolation can be performed using techniques such as Goraud shading
+                or barycentric interpolation.
+                This smooth normal represents the orientation of the surface at each pixel.
+              \item[Lighting Calculation] For each pixel on the surface, the shading algorithm
+                applies the \hyperref[sec:phong-reflection]{Phong Reflection Model}
+                to calculate the shading values.
+              \item[Rasterization] The calculated shading values are then rasterized
+                to pixels within the polygon.
+                The rasterization process determines which pixels are covered by the polygon,
+                and assigns the corresponding shading value to those pixels.
+              \item[Rendering] The rendered polygon is displayed on the screen or stored in a
+                framebuffer with the shading values.
+                The resulting image shows a smooth shading with accurate highlights
+                and reflections.
+            \end{descriptenum}
+          \end{sidenote}
       \end{descriptimize}
 
     \section{Specifying Lighting Parameters}
@@ -472,7 +568,7 @@
 
       \subsection{Lighting in the Vertex Shader}
         To implement lighting in the vertex shader, we must carry out three steps:
-        \begin{enumerate}[nosep]
+        \begin{enumerate}
           \item Choose a lighting model.
           \item Write a vertex shader to implement the model.
           \item Transfer the necessary data to the shader.
@@ -524,13 +620,11 @@
       By doing the lighting calculations on a per-fragment instead of per-vertex basis,
       we can obtain highly smooth and realistic looking shadings.
 
-      \begin{sidenote}[float]{Non-Photorealistic Shading}
+      \begin{sidenote}{Non-Photorealistic Shading}
         Programmable shaders make it possible not only to incorporate more realistic lighting
         models in real time, but also to create non-photorealistic effects.
         Two examples are the use of only a few colours, and emphasising the edges in objects.
       \end{sidenote}
-
-    \pagebreak
 
     \section{Global Illumination}
       Since each object is shaded independently, there are limitations imposed
@@ -542,11 +636,33 @@
       and we want our image to be the same regardless of the order in which the application
       produces the polygons.
 
+      \begin{sidenote}{Phenomena Global Illumination Considers}
+        $ $\vspace{-1em}
+        \begin{descriptimize}[nosep]
+          \item[Diffuse Interreflction] Global illumination algorithms simulate the way light
+            bounces off surfaces and illuminates nearby objects.
+            It accounts for diffuse interreflection, where light is scattered in different
+            directions as it interacts with various surfaces, resulting in softer and more
+            realistic shading.
+          \item[Specular Reflection and Refraction] These occur when light hits shiny
+            or transparent surfaces.
+            Global illumination algorithms trace the paths of reflected and refracted rays,
+            taking into account surface properties and the Fresnel effect,
+            to accurately render highlights, glossy reflections, and transparent materials.
+          \item[Colour Bleeding] The colour of one surface influences nearby surfaces
+            by reflecting or scattering coloured light onto them.
+          \item[Indirect Shadows] Light is blocked or occluded by objects in a scene.
+            These algorithms consider the indirect light that reaches the shadowed areas,
+            resulting in softer, more realistic shadows compared to solely considering
+            direct illumination.
+        \end{descriptimize}
+      \end{sidenote}
+
       There are two alternate rendering strategies -- ray tracing and radiosity --
       that can handle global effects.
       Each is best at different lighting conditions.
 
-      \begin{definition}{Ray Tracing}
+      \begin{definition}{Ray Tracing (Path Tracing)}
         \concept{Ray tracing} starts with the synthetic-camera model but determines,
         for each projector that strikes a polygon,
         whether that point is indeed illuminated by one or more sources
@@ -570,6 +686,47 @@
       A ray tracer is best suited to a scene consisting of highly reflecting surfaces,
       whereas a radiosity renderer is best suited for a scene in which all the surfaces
       are perfectly diffuse.
+
+      \begin{definition}{Photon Mapping}
+        Simulate the behaviour of light by emitting photons from light sources
+        and tracing their paths as they interact with surfaces.
+        These algorithms use photon maps to estimate the indirect illumination and generate
+        the final rendering.
+      \end{definition}
+
+    \section{Shadows}
+      Shadows are the result of objects blocking light sources, causing areas behind them
+      to be less illuminated, or completely in shadow.
+      Shadows correspond to the perception of the shape, position, and interaction of objects
+      within a scene.
+
+      \begin{definition}{Cast Shadows}
+        Cast shadows occur when an object blocks light, creating a shadow on other surfaces
+        or objects in the scene.
+        These shadows help establish the relationship between objects and their interaction
+        with light sources.
+        Rendering realistic cast shadows involves simulating the direction, intensity,
+        and softness of shadows based on the position, size, and shape of objects.
+      \end{definition}
+
+      \begin{definition}{Shadow Mapping}
+        A technique used to simulate case shadows in real-time rendering.
+
+        Involves rendering the scene from the viewpoint of the light source and storing
+        depth information (a \concept{shadow map}) in a texture or buffer.
+        During the final rendering pass, the depth information is compared to determine
+        if a fragment or pixel is in shadow.
+
+        This technique provides an efficient way to approximate the presence of shadows
+        in real-time applications.
+      \end{definition}
+
+      \begin{definition}{Ambient Occlusion}
+        A technique used to simulate the soft, indirect shadows that occur in areas
+        where objects are close to each other or self-occluded.
+        It approximates how ambient light is occluded by nearby objects,
+        creating subtle shadowing effects and enhancing the perception of depth and realism.
+      \end{definition}
 
     \rulechapterend
 
