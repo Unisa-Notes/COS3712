@@ -85,7 +85,7 @@
       \end{sidenote}
 
       \subsection{Pixels and the Framebuffer}
-        \begin{itemize}[nosep]
+        \begin{itemize}
           \item Virtually all modern graphics systems are \concept{raster-based}.
           \item The image seen on the output device is an array -- the \concept{raster}
           -- of picture elements (\concept{pixels}), produced by the graphics system.
@@ -94,6 +94,7 @@
         \end{itemize}
 
         \begin{definition}{Framebuffer Properties}
+          $ $\vspace{-1em}
           \begin{description}
             \item[Resolution] The number of pixels in the framebuffer.
             Determines the detail that can be seen in the image.
@@ -105,6 +106,7 @@
         \end{definition}
 
         \begin{sidenote}{Color Systems}
+          $ $\vspace{-1em}
           \begin{description}
             \item[Full-color systems] 24 (or more) bits per pixel.
             These systems can display sufficient colors to represent most images realistically.
@@ -218,9 +220,9 @@
         use a two-dimensional grid to address individual light-emitting elements.
         \pagebreak
 
-        \begin{wrapfigure}{l}{0.5\textwidth}
+        \begin{wrapfigure}{l}{0.4\textwidth}
           \begin{center}
-            \includegraphics[width=0.48\textwidth]{\main/images/chapter01/flat_panel_display.jpg}
+            \includegraphics[width=0.38\textwidth]{\main/images/chapter01/flat_panel_display.jpg}
           \end{center}
           \caption{Generic Flat-Panel Display}
         \end{wrapfigure}
@@ -260,9 +262,25 @@
         These devices are often called \concept{pointing devices},
         and allow a user to indicate a particular location on the display.
 
-        Due to new input devices appearing regularly,
-        our graphics programs should implement a flexible model for incorporating input devices.
-      \pagebreak
+        \begin{sidenote}{Measure of an Input Device}
+          In a graphics program, we can obtain the measure (what the device returns)
+          of an input device in three distinct modes:
+          \begin{descriptenum}[nosep]
+            \item[Request Mode] The measure of the device is not returned to the program
+              until the device is triggered.
+              A trigger of a device is a physical input on the device with which the user
+              can signal the computer.
+            \item[Sample Mode] As soon as the function call of a function that expects device input
+              is encountered, the measure is returned.
+            \item[Event Mode] Each time that a device is triggered, an event is generated
+              and the device measure, including the identifier for that device,
+              is placed in an event queue.
+              Periodically, the queue is polled, and for each (if any) event in the queue,
+              the program can look at the event's type and then decide what to do.
+          \end{descriptenum}
+          Both request- and sample-mode input APIs require that the user identify which device
+          is to provide the input, and thus are not sufficient for modern computing environments.
+        \end{sidenote}
 
     \section{Images: Physical and Synthetic}
       \subsection{Objects and Viewers}
@@ -284,6 +302,11 @@
         Objects and viewers exist in three-dimensional space,
         but the image that is defined is two-dimensional.
 
+        \begin{definition}{Projection (Image Formation)}
+          The process by which the specification of an object is combined with the specification
+          of a viewer to produce a two-dimensional image.
+        \end{definition}
+
       \subsection{Light and Images}
         An image must have a light source.
         Light from the source strikes various surfaces of the object,
@@ -298,18 +321,18 @@
           causes a response in our visual systems.
 
           This \concept{visual spectrum} is called \concept{light},
-          and has wavelengths in the range of $350$ to $780$ nanometers (nm).
+          and has wavelengths in the range of $350$ to $780$ nanometres (nm).
 
           A given light source has a color determined by the energy that it emits at various
           wavelengths.
 
-          \begin{indentparagraph}
-            \begin{descriptimize}[nosep]
-              \item[450 nm] blue
-              \item[520 nm] green
-              \item[650 nm] red
-            \end{descriptimize}
-          \end{indentparagraph}
+          \begin{center}
+            \begin{itemize*}[itemjoin=\quad, label={ }]
+              \item \concept{450 nm} blue
+              \item \concept{520 nm} green
+              \item \concept{650 nm} red
+            \end{itemize*}
+          \end{center}
         \end{definition}
 
         Light sources can emit light either as a set of discrete frequencies,
@@ -321,7 +344,6 @@
         \begin{definition}{Geometric Optics}
           This method models light sources as emitters of light energy,
           each of which have a fixed intensity.
-
           In this model, light travels in straight lines,
           from the sources to those objects with which it interacts.
         \end{definition}
@@ -384,7 +406,7 @@
           emanating from a point, can enter it.
           The film plane is located at a distance $d$ from the pinhole.
 
-          \vspace{4.5em}
+          \vspace{7em}
           \pagebreak
 
           \begin{wrapfigure}[11]{l}{0.5\textwidth}
@@ -481,11 +503,6 @@
         we can use three standard primaries to approximate any color that we can perceive.
 
     \section{The Synthetic-Camera Model}
-      \begin{definition}{Synthetic-Camera Model}
-        Look at creating a computer-generated image as being similar to
-        forming an image using an optical system.
-      \end{definition}
-
       \begin{sidenote}{Principles for the Synthetic-Camera Model}
         \begin{enumerate}[nosep]
           \item The specification of objects is independent of the specification of the viewer.
@@ -519,7 +536,18 @@
       the size of the clipping rectangle,
       we can determine which objects will appear in the image.
 
-    \pagebreak
+      \begin{definition}{Projection Matrix}
+        Transforms 3D scene coordinates into 2D image coordinates on the camera's image plane.
+        Takes into account the camera's position, orientation, field of view, aspect ratio,
+        and near and far clipping planes.
+      \end{definition}
+
+      \begin{definition}{Viewport}
+        Defines the portion of the image plane that is actually displayed on the screen or output
+        device.
+        Specifies the pixel coordinates and dimensions of the rendered image that will be visible
+        to the viewer.
+      \end{definition}
 
     \section{The Programmer's Interface}
       \begin{definition}{Application Programming Interface (API)}
@@ -866,6 +894,8 @@
 
           \begin{center}
             \includegraphics[width=0.9\textwidth]{\main/images/chapter01/graphics_pipeline.png}
+      \pagebreak
+
             \captionof{figure}{Geometric Pipeline}
           \end{center}
         \end{sidenote}
@@ -961,40 +991,49 @@
         and blended with the fragment's color
         to create translucent effects.
 
-    \pagebreak
-
     \section{Programmable Pipelines}
-      None of the other approaches to graphics
-      can achieve real-time behavior,
-      that is, the ability to render complex dynamic scenes
-      so that the viewer sees the display without defects,
-      in the way pipelining can.
-      The commodity graphics market is dominated by graphics cards
-      that have pipelines built into the graphics processing unit.
+      \concept{Programmable pipelines} refer to a graphics rendering pipeline where various stages
+      of the rendering process are programmable by the user, typically through the use of shaders.
+      This approach allows for greater flexibility and customisation in the rendering process.
 
-      For many years, these pipeline architectures had a fixed functionality.
-      While the application program could set many parameters,
-      the basic operations available within the pipeline were fixed.
-
+      Traditionally, graphics rendering pipelines consisted of fixed-function stages
+      that performed specific tasks in a predetermined sequence.
+      This approach was efficient and straightforward, but lacked the flexibility required
+      to create complex visual effects and achieve high levels of realism.
       Now, both the vertex processor and the fragment processor are
-      programmable by the application programmer.
-      This means that many of the effects that could not be done in real time,
+      programmable.
+      This means that many effects that could not be done in real time,
       as they were not part of the fixed-function pipeline,
       can now be done in real-time.
       An example of this is bump mapping.
 
-      \concept{Vertex shaders} can alter the location or color of each vertex
-      as it flows through the pipeline.
-      Thus, we can implement a variety of light-material models
-      or create new kinds of projections.
-      \concept{Fragment shaders} allow us to use textures in new ways
-      and to implement other parts of the pipeline,
-      such as lighting,
-      on a per-fragment basis rather than per-vertex.
-
-      The speed and parallelism in programmable GPUs
-      make them suitable for carrying out high-performance computing
-      that does not involve graphics.
+      \begin{sidenote}{Stages in a Programmable Graphics Pipeline}
+        $ $\vspace{-1em}
+        \begin{descriptenum}[nosep]
+          \item[Vertex Shader Stage] Vertex shaders operate on individual vertices of
+            3D geometry.
+            They can transform vertex positions, apply skinning and morphing animations,
+            compute per-vertex lighting, and perform other operations related to vertex
+            processing.
+          \item[Geometry Shader Stage (Optional)] Geometry shaders operate on entire primitives,
+            and can generate new primitives or discard existing ones.
+            They are useful for tasks such as tessellation, particle systems,
+            and procedural geometry generation.
+          \item[Primitive Assembly/Rasterization Stage] Individual primitives are assembled
+            from vertices and transformed into fragments (pixels).
+            \concept{Rasterization} involves determining which fragments correspond to pixels
+            on the screen, and interpolating vertex attributes
+            (such as colour and texture coordinates) across each fragment.
+          \item[Fragment Shader Stage] Fragment shaders operate on individual fragments (pixels)
+            generated by rasterization.
+            They can perform per-pixel lighting calculations, apply textures, implement
+            procedural effects, and perform other operations related to fragment processing.
+          \item[Pixel Operations/Output Merger Stage] Pixel operations are applied to the
+            fragments before they are written to the framebuffer.
+            Pixel operations may include depth testing, alpha blending, stencil testing,
+            and other post-processing effects.
+        \end{descriptenum}
+      \end{sidenote}
 
     \section{Performance Characteristics}
       There are two fundamentally different types of processing in our architecture.
@@ -1113,6 +1152,36 @@
       the program will run on the local system and make use of the local graphics hardware.
       WebGL and OpenGL~ES are fully shader based.
       All the basic properties and capabilities of OpenGL are in WebGL.
+
+    \section{3D vs 2D}
+      \concept{3D computer graphics} refers to the creation, manipulation, and rendering
+      of images in a three-dimensional space using computers.
+      It involves representing objects and scenes with width, height, and depth.
+
+      \begin{sidenote}{Ways 3D Graphics and 2D Differ}
+        $ $\vspace{-1em}
+        \begin{descriptimize}
+          \item[Dimensionality] 2D~graphics are limited to two dimensions,
+            typically represented on a flat surface.
+            Whereas 3D~graphics add depth to the representation, allowing for the creation
+            of objects that appear to have volume and occupy space.
+          \item[Realism] 3D~graphics enable the creation of more realistic images by accurately
+            simulating lighting, shadows, reflections, and other properties of real-world objects
+            and environments.
+            This realism enhances the immersion of the viewer and makes the graphics more lifelike
+            compared to 2D~graphics, which often rely on stylised or abstract representations.
+          \item[Complexity] Creating 3D~graphics typically involves working with more complex
+            data structures and algorithms compared to 2D~graphics.
+            In 3D~graphics, objects are often represented as meshes composed of vertices,
+            edges, and faces, requiring additional computation for rendering and manipulation.
+            Additionally, techniques such as \hyperref[def:texture-mapping]{texture~mapping},
+            shading, and animation add layers of complexity to 3D~graphics projects.
+          \item[Applications] While both 2D and 3D~graphics find applications in various fields,
+            3D graphics are well-suited for applications where spatial relationships and
+            depth perception are important.
+          \item[Interactivity] 3D~graphics often enable greater interactivity than 2D~graphics.
+        \end{descriptimize}
+      \end{sidenote}
 
     \rulechapterend
 
