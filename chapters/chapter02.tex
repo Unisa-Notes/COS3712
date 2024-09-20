@@ -224,7 +224,7 @@
             \item[Simple] In 2D, no two edges of a polygon cross each other.
             \item[Convex] All points on the line~segments between any two points
               inside the object, or on its boundary, are inside the object.
-            \item[Flat]
+            \item[Flat (Planar)] All the vertices that specify the polygon lie in the same plane.
           \end{descriptimize}
         \end{sidenote}
 
@@ -458,6 +458,58 @@
         With WebGL, we will be able to identify the events to which we want to react through
         functions called \concept{event~listeners} or \concept{callbacks}.
         A callback function is associated with a specific type of event.
+
+      \pagebreak
+
+      \subsection{Interaction}
+        Instead of calling the display callback function directly, rather invoke the
+        \mintinline{javascript}{glutPostRedisplay()} function which sets an internal flag
+        indicating that the display needs to be redrawn.
+        At the end of each event-loop iteration, if the flag is set, the display callback is invoked,
+        and the flag is unset.
+        This method prevents the display from being redrawn multiple times in a single pass through
+        the event loop.
+
+        \begin{sidenote}{Types of Events}
+          $ $\vspace{-1em}
+          \begin{descriptimize}
+            \item[Mouse Events] Occur when one of the mouse buttons is either depressed
+              (mouse down event) or released (mouse up event).
+            \item[Move Events] Generated when the mouse is moved with one of the buttons depressed.
+              If the mouse is moved without a button being held down, this event is called a
+              \concept{passive move event}.
+            \item[Reshape Events] Occur when the user resizes the window, usually by dragging a
+              corner of the window to a new location.
+              This is an example of a \concept{window event}.
+              Unlike most other callbacks, there is a default reshape callback that simply
+              changes the viewport to the new window size.
+            \item[Keyboard Events] Generated when the mouse is in the window
+              (or the window is focussed), and one of the keys is depressed or released.
+          \end{descriptimize}
+        \end{sidenote}
+
+        The \concept{idle callback} is invoked when there are no other events.
+        A typical use of the idle callback is to continue to generate graphical primitives
+        through a display function while nothing else is happening.
+        Another is to produce an animated display.
+
+        An application program operates asynchronously from the automatic display of the contents
+        of the framebuffer, and can cause changes to the framebuffer at any time.
+        Hence, a redisplay of the framebuffer can occur while its contents are still
+        being altered by the application and the user will see only a partially drawn display.
+        A common solution is \concept{double-buffering}.
+
+        \begin{definition}{Double Buffering}
+          The hardware has two framebuffers.
+          One, called the \concept{front buffer}, is the one that is displayed.
+          The other, called the \concept{back buffer}, is then available for constructing
+          what we would like to display next.
+          Once the drawing is complete, we swap the front and back buffers.
+          We then clear the new back buffer and can start drawing into it.
+
+          With double-buffering, we use \mintinline{javascript}{glutSwapBuffers()} instead of
+          \mintinline{javascript}{glFlush()} at the end of the display callback function.
+        \end{definition}
 
     \rulechapterend
 
