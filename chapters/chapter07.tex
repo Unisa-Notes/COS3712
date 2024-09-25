@@ -5,14 +5,72 @@
   \setcounter{chapter}{6}
   \chapter{Discrete Techniques}
     \section{Buffers}
+
+      \concept{Buffers} in computer graphics are memory areas used to store and manipulate
+      various types of data during the rendering process.
+      They serve as temporary storage locations that hold information such as colour,
+      depth, stencil, and other attributes of pixels or vertices before they are displayed
+      on the screen.
+
       What all buffers have in common is that they are inherently discrete:
       they have limited resolution, both spatially and in depth.
       We can define a (two-dimensional) \concept{buffer} as block of memory with
       $n \times m$ $k$-bit elements.
 
-      The \concept{framebuffer} is the set of buffers that the graphics system uses for rendering,
-      including the front and back colour buffers, the depth buffer, and other buffers
-      the hardware may provide.
+      \begin{sidenote}{Commonly Used Buffers in Computer Graphics}
+        $ $\vspace{-1em}
+        \begin{descriptimize}
+          \item[Frame Buffer] Also known as the \concept{colour buffer}.
+            The primary buffer that stores the final colour values for each pixel in the
+            rendered image.
+            It represents the pixel grid or raster on the display device.
+            The colour values for each pixel are computed and stored in the framebuffer
+            during the rendering process.
+            Once rendering is complete, the contents of the framebuffer are sent to the
+            display device for visualisation.
+          \item[Depth Buffer ($z$-Buffer)] Used to handle depth information for each pixel.
+            Stores the depth value ($z$-coordinate) of each pixel in the scene.
+            Crucial for depth testing and hidden surface removal.
+          \item[Stencil Buffer] Used for performing stencil operations during rendering.
+            Stores an integer value (stencil value) for each pixel.
+            Primarily used for masking or controlling rendering operations on specific
+            regions of the screen.
+            Can be used to create effects such as silhouettes, stenciled shadows,
+            or selective rendering of objects based on a stencil mask.
+          \item[Accumulation Buffer] An additional buffer used for accumulating multiple frames
+            or rendering passes.
+            Used for techniques such as motion blur, antialiasing, and high-dynamic-range~(HDR)
+            rendering.
+            By combining multiple samples or frames in the accumulation buffer,
+            it is possible to achieve smoother motion, reduce jagged edges,
+            or enhance the dynamic range of the final image.
+          \item[Auxiliary Buffers] Extra buffers used for various specific purposes.
+        \end{descriptimize}
+      \end{sidenote}
+
+    \section{Digital Images}
+      \concept{Digital images} are visual representations of data that are stored and manipulated
+      in a digital format.
+      These images are composed of discrete pixels, each representing a specific colour or
+      intensity value.
+
+      \begin{sidenote}{Key Aspects of Digital Images}
+        $ $\vspace{-1em}
+        \begin{descriptimize}
+          \item[Pixel Grid] A digital image is typically represented as a 2D grid of pixels.
+            Each pixel corresponds to a specific location on the image, and holds information
+            about its colour or intensity.
+            The resolution of the image determines the number of pixels in the grid.
+          \item[Colour Encoding] Digital images can represent colours using different colour models,
+            such as RGB, CMYK, or greyscale.
+          \item[Bit Depth] Determines the number of possible colour or intensity values
+            per pixel.
+            Common bit-depths are 8-bit, 16-bit and 24-bit per channel.
+            Higher bit depths result in more accurate colour representations and smoother gradients,
+            but require more storage space.
+          \item[Image File Formats] Define how the image data is organised and encoded.
+        \end{descriptimize}
+      \end{sidenote}
 
     \section{Mapping Methods}
       One of the most powerful uses of discrete data is for surface rendering.
@@ -36,7 +94,7 @@
         \item Environment mapping
       \end{itemize}
 
-      \begin{definition}{Texture Mapping}
+      \begin{definition}[label={def:texture-mapping}, nameref={Texture~Mapping}]{Texture Mapping}
         Uses an image (or texture) to influence the colour of a fragment.
         Textures can be specified using a fixed pattern; by a procedural texture generation
         method; or through a digitized image.
@@ -74,6 +132,41 @@
       Bump mapping requires us to process each fragment independently,
       something we can do with a fragment shader.
 
+      Other forms of mapping are \concept{UV mapping}, \concept{normal mapping},
+      \concept{displacement mapping}, and \concept{procedural mapping}.
+
+      \begin{definition}{UV Mapping}
+        A specific type of texture mapping that uses 2D UV coordinates to map the texture
+        onto the surface of an object.
+        The UV coordinates define a 2D space that corresponds to the object's 3D surface.
+        By assigning UV coordinates to each vertex, the texture can be accurately applied
+        to the object.
+      \end{definition}
+
+      \begin{definition}{Normal Mapping}
+        Similar to bump mapping, but provides more detailed and realistic surface variations.
+        It uses a normal map, which stores per-pixel normal vectors, to perturb the surface normals
+        during rendering.
+        The normal map simulates fine details on the surface, such as creases, bumps,
+        or indentations, by altering the lighting calculations.
+      \end{definition}
+
+      \begin{definition}{Displacement Mapping}
+        Modifies the geometry of an object based on a displacement map.
+        The displacement map stores height or displacement values that determine how the object's
+        vertices are displaced among their normals.
+        This method can create more pronounced surface details, such as wrinkles,
+        cracks, or deformations, by physically altering the object's geometry.
+      \end{definition}
+
+      \begin{definition}{Procedural Mapping}
+        Generating textures or patterns algorithmically, rather than using pre-existing images.
+        Procedural textures are created using mathematical functions or noise algorithms,
+        allowing for the generation of complex and customisable patterns.
+        Procedural mapping provides flexibility and efficiency in generating textures
+        and allows for seamless tiling and resolution independent rendering.
+      \end{definition}
+
     \section{Two-Dimensional Texture Mapping}
       Textures are patterns, and can be one-, two-, three, or four-dimensional.
       Because the use of surfaces is so important in computer graphics,
@@ -81,7 +174,7 @@
 
       Although there are multiple approaches to texture mapping, all require a sequence
       of steps that involve mappings around three or four different coordinate systems:
-      \begin{descriptimize}[nosep]
+      \begin{descriptimize}
         \item[Screen coordinates.] Where the final image is produced.
         \item[Object coordinates.] Where we describe the objects on which the textures will
           be mapped.
@@ -120,23 +213,24 @@
       We can think of texture mapping as part of the shading process, but a part that is done
       on a fragment-by-fragment basis.
 
+      \begin{center}
+        \captionsetup{type=figure}
+        \vspace{0.5cm}
+        \includegraphics[width=0.8\textwidth]{\main/images/chapter07/two_pipelines.png}
+        \caption{Pixel and geometry pipelines.}
+        \vspace{0.5cm}
+      \end{center}
+
       Texture coordinates are handled like normals and colours:
       they can be associated with vertices as an additional vertex attribute,
       and the required texture values can be obtained by the rasterizer interpolating
       the texture coordinates at the vertices across polygons.
       They can also be generated in one of the shaders.
 
-      \begin{figure}
-        \begin{center}
-          \includegraphics[width=0.8\textwidth]{\main/images/chapter07/two_pipelines.png}
-        \end{center}
-        \caption{Pixel and geometry pipelines.}
-      \end{figure}
-
       Texture mapping requires interaction among the application program, the vertex shader,
       and the fragment shader.
       There are three basic steps:
-      \begin{enumerate}
+      \begin{enumerate}[nosep]
         \item Form a texture image and place it in texture memory on the GPU.
         \item Assign texture coordinates to each fragment.
         \item Apply the texture to each fragment.
@@ -152,6 +246,43 @@
         to surfaces.
         As long as there is sufficient memory to retain them, these objects reside in the
         texture memory in the GPU.
+
+        \begin{sidenote}{Texture Objects}
+          Texture objects typically contain:
+          \begin{descriptimize}
+            \item[Texture Data] The actual pixel data of the texture image.
+              This data represents the colour or intensity values that will be applied
+              to the object's surface during rendering.
+            \item[Texture Parameters] Control how the texture is applied and rendered.
+              Include the filtering mode (how texture samples are interpolated),
+              wrap mode (how texture coordinates outside the texture range are handled),
+              texture size, and mipmapping parameters.
+            \item[Texture Coordinates] Define how the texture is mapped onto the object's surface.
+              They specify how the texture is stretched, rotated, or distorted to fit the
+              geometry of the object.
+          \end{descriptimize}
+        \end{sidenote}
+
+        \begin{sidenote}{Benefits of Texture Objects}
+          By encapsulating texture data and related parameters, texture objects provide several
+          benefits:
+          \begin{descriptimize}[nosep]
+            \item[Efficient Memory Management] Texture objects manage the memory allocated
+              for texture data, ensuring efficient memory use.
+              They allow for easy creation, deletion, and modification of textures without
+              the need to manually handle memory allocation and deallocation.
+            \item[Reusability] Textures can be shared among multiple objects or scenes.
+              By referencing the same texture object, different objects can apply the same texture
+              without duplicating the texture data.
+            \item[Texture State Management] Texture objects simplify the management of texture
+              states within a graphics application.
+              They encapsulate the necessary information and parameters, making it easier to
+              switch between different textures or modify texture properties during runtime.
+            \item[Performance Optimisation] Texture objects can be optimised for performance.
+              They provide mechanisms for generating mipmaps, and also support texture
+              compression formats.
+          \end{descriptimize}
+        \end{sidenote}
 
         \begin{sidenote}{Creating Textures}
           For a single texture, we start by creating a texture object:
@@ -287,8 +418,6 @@
       rendering pipeline.
       Most of these techniques can be done within the fragment shader.
 
-    \pagebreak
-
     \section{Bump Mapping}
       Bump~mapping is a texture-mapping technique that can give the appearance
       of great complexity in an image without increasing the geometric complexity.
@@ -331,6 +460,8 @@
         fragment processing.
         We can use the notion of source and destination pixels.
 
+      \pagebreak
+
       \subsection{Blending in WebGL (and OpenGL)}
         To use blending in WebGL and OpenGL requires three steps:
         \begin{enumerate}
@@ -346,8 +477,6 @@
             \end{descriptimize}
           \item The application program must use RGBA colours.
         \end{enumerate}
-
-        \pagebreak
 
         The major difficulty with blending is that for most choices of the blending factors,
         the order in which we render the polygons affects the final image.

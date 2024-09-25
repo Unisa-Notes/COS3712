@@ -678,6 +678,24 @@
         If we want to continue with depth sort, we must derive the details of the intersection
         -- a calculation equivalent to clipping one polygon against the other.
 
+      \subsection{Binary Space Partitioning (BSP) Trees}
+        \concept{BSP trees} are a hierarchical data structure used for efficient hidden-surface
+        removal.
+        These trees recursively partition the scene into subsets based on a splitting plane.
+        Each subset contains objects on either side of the plane.
+        By traversing the tree and checking against the splitting planes,
+        visibility can be determined efficiently, and hidden surfaces can be eliminated.
+
+      \subsection{Occlusion Queries}
+        \concept{Occlusion queries} involve using the graphics hardware to determine if an object
+        or part of an object is occluded by other surfaces.
+        The technique works by rendering the scene with a simplified representation or
+        bounding volume of the objects.
+        By querying the hardware, one can determine if these bounding volumes are occluded
+        or visible, allowing for selective rendering and elimination of hidden surfaces.
+
+    \pagebreak
+
     \section{Antialiasing}
       Rasterized line segments and edges of polygons look jagged.
       This type of error arises whenever we attempt to go from the continuous representation
