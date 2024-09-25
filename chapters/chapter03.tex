@@ -640,6 +640,84 @@
         A matrix whose inverse is equal to its transpose is called an \concept{orthogonal matrix}.
         Normalised orthogonal matrices correspond to rotations about the origin.
 
+        \begin{example}[Some Transformation Matrices]
+          \begin{minipage}[t]{0.19\linewidth}
+            \begin{center}
+              \captionsetup{type=figure, justification=centering}
+              \begin{align*}
+                \begin{bmatrix}
+                  1 & 0 & 0 & 0 \\
+                  0 & 1 & 0 & 0 \\
+                  0 & 0 & 1 & 0 \\
+                  0 & 0 & 0 & 3
+                \end{bmatrix}
+              \end{align*}
+              \vspace{-1em}
+              \caption*{Uniform Scaling}
+            \end{center}
+          \end{minipage}
+          \begin{minipage}[t]{0.19\linewidth}
+            \begin{center}
+              \captionsetup{type=figure, justification=centering}
+              \begin{align*}
+                \begin{bmatrix}
+                  3 & 0 & 0 & 0 \\
+                  0 & 3 & 0 & 0 \\
+                  0 & 0 & 1 & 0 \\
+                  0 & 0 & 0 & 3
+                \end{bmatrix}
+              \end{align*}
+              \vspace{-1em}
+              \caption*{Non-Uniform Scaling}
+            \end{center}
+          \end{minipage}
+          \begin{minipage}[t]{0.19\linewidth}
+            \begin{center}
+              \captionsetup{type=figure, justification=centering}
+              \begin{align*}
+                \begin{bmatrix}
+                  0 & -1 &  0 & 0 \\
+                  0 &  0 & -1 & 0 \\
+                  -1 &  0 &  0 & 0 \\
+                  0 &  0 &  0 & 1
+                \end{bmatrix}
+              \end{align*}
+              \vspace{-1em}
+              \caption*{Reflection}
+            \end{center}
+          \end{minipage}
+          \begin{minipage}[t]{0.19\linewidth}
+            \begin{center}
+              \captionsetup{type=figure, justification=centering}
+              \begin{align*}
+                \begin{bmatrix}
+                  \sqrt{2} & -\sqrt{2} & 0 & 0 \\
+                  \sqrt{2} & \sqrt{2} & 0 & 0 \\
+                  0 & 0 & 2 & 0 \\
+                  0 & 0 & 0 & 2
+                \end{bmatrix}
+              \end{align*}
+              \vspace{-1em}
+              \caption*{Rotation\\About~$z$}
+            \end{center}
+          \end{minipage}
+          \begin{minipage}[t]{0.19\linewidth}
+            \begin{center}
+              \captionsetup{type=figure, justification=centering}
+              \begin{align*}
+                \begin{bmatrix}
+                  0 & -1 &  0 & 0 \\
+                  0 &  0 & -1 & 0 \\
+                  1 &  0 &  0 & 0 \\
+                  0 &  0 &  0 & 1
+                \end{bmatrix}
+              \end{align*}
+              \vspace{-1em}
+              \caption*{Rotation}
+            \end{center}
+          \end{minipage}
+        \end{example}
+
     \section{Concatenation of Transformations}
       We can combine affine transformations by multiplying together, or \concept{concatenating},
       sequences of the basic transformations.
